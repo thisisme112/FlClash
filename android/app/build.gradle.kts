@@ -69,12 +69,12 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            if (hasReleaseSigning) {
-                signingConfig = signingConfigs.getByName("release")
-            } else {
-                signingConfig = signingConfigs.getByName("debug")
-                applicationIdSuffix = ".dev"
-            }
+            // A fork build: it keeps its own id beside the official app and
+            // reports nothing to upstream's Crashlytics project.
+            applicationIdSuffix = ".dev"
+            signingConfig = signingConfigs.getByName(
+                if (hasReleaseSigning) "release" else "debug",
+            )
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -82,7 +82,8 @@ android {
             )
 
             configure<CrashlyticsExtension> {
-                nativeSymbolUploadEnabled = hasReleaseSigning
+                nativeSymbolUploadEnabled = false
+                mappingFileUploadEnabled = false
             }
         }
     }
@@ -101,13 +102,6 @@ kotlin {
 
 flutter {
     source = "../.."
-}
-
-// The Crashlytics plugin finalizes R8 with the mapping upload but leaves the native symbol upload to the caller.
-if (hasReleaseSigning) {
-    tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
-        finalizedBy("uploadCrashlyticsSymbolFileRelease")
-    }
 }
 
 dependencies {
