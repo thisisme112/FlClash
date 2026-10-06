@@ -145,6 +145,8 @@ jobs:
         if: steps.merge.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          # With an upstream remote present, gh would otherwise target upstream.
+          GH_REPO: ${{ github.repository }}
         run: |
           tag="dotmatrix-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
           gh release create "$tag" FlClash-dotmatrix-arm64.apk \
