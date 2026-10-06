@@ -1,0 +1,153 @@
+name: sync-build
+
+# Fork only: merges upstream main into this branch once a day and, when there
+# was something to merge, tests it and publishes an arm64 APK as a release.
+# Scheduled runs use the workflow on the default branch, so this branch has to
+# stay the fork's default.
+
+on:
+  schedule:
+    - cron: '17 20 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build even when upstream has nothing new
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-build
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: https://github.com/chen08209/FlClash.git
+  HAS_KEYSTORE: ${{ secrets.KEYSTORE != '' }}
+
+jobs:
+  sync-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Merge upstream
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM"
+          git fetch --no-tags upstream main
+          if git merge-base --is-ancestor upstream/main HEAD && [ "${{ inputs.force }}" != "true" ]; then
+            echo "Upstream has nothing new."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git merge --no-commit --no-ff upstream/main || true
+          # The workflow token may not push changes to workflow files, and
+          # upstream's own workflows are not meant to run in a fork.
+          git ls-files -z .github/workflows | grep -zv 'sync-build.yaml' | xargs -0 -r git rm -q -f --
+          conflicts="$(git diff --name-only --diff-filter=U)"
+          if [ -n "$conflicts" ]; then
+            echo "::error::Upstream conflicts with this branch; merge it by hand."
+            echo "$conflicts"
+            exit 1
+          fi
+          git commit -q -m "chore: merge upstream main" || echo "Nothing to commit."
+          git submodule update --init --recursive
+          pinned() { git show upstream/main:.github/workflows/build.yaml | sed -n "s/^  $1: *'\{0,1\}\([^']*\)'\{0,1\}$/\1/p"; }
+          {
+            echo "changed=true"
+            echo "flutter=$(pinned FLUTTER_VERSION)"
+            echo "go=$(pinned GO_VERSION)"
+            echo "ndk=$(pinned NDK_VERSION)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Go
+        if: steps.merge.outputs.changed == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.merge.outputs.go }}
+          cache-dependency-path: core/go.sum
+
+      - name: Setup Java
+        if: steps.merge.outputs.changed == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Rust cache
+        if: steps.merge.outputs.changed == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: plugins/rust_api/rust
+          cache-directories: .dart_tool/hooks_runner
+
+      - name: Setup Gradle
+        if: steps.merge.outputs.changed == 'true'
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Setup Flutter
+        if: steps.merge.outputs.changed == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.merge.outputs.flutter }}
+          cache: true
+
+      - name: Setup NDK
+        if: steps.merge.outputs.changed == 'true'
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: ${{ steps.merge.outputs.ndk }}
+          add-to-path: true
+          link-to-sdk: true
+
+      - name: Analyze and test
+        if: steps.merge.outputs.changed == 'true'
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          yq -i '.hooks.user_defines.setup.build_assets = false' pubspec.yaml
+          flutter test
+          git checkout -- pubspec.yaml
+
+      - name: Setup signing
+        if: steps.merge.outputs.changed == 'true' && env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
+          {
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}"
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+          } >> android/local.properties
+
+      - name: Build APK
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          flutter build apk --release --target-platform android-arm64 --split-per-abi
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk FlClash-dotmatrix-arm64.apk
+
+      - name: Push the merge
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Publish release
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="dotmatrix-$(date -u +%Y%m%d)-$(git rev-parse --short HEAD)"
+          gh release create "$tag" FlClash-dotmatrix-arm64.apk \
+            --target "$(git rev-parse HEAD)" \
+            --title "$tag" \
+            --notes "Upstream $(git rev-parse --short upstream/main) merged into ${{ github.ref_name }}. Signed with the fork's key: ${{ env.HAS_KEYSTORE }}."
