@@ -8,14 +8,30 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const _minSpeedScale = 8 * 1024.0;
+const _meterHeight = 42.0;
+const _speedFontSize = 56.0;
 
 class NetworkSpeed extends StatelessWidget {
   const NetworkSpeed({super.key});
 
+  List<Color> _meterColors(ColorScheme colorScheme) {
+    return [
+      colorScheme.success,
+      colorScheme.success,
+      colorScheme.success,
+      colorScheme.warning,
+      colorScheme.warning,
+      colorScheme.error,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
-    final color = context.colorScheme.onSurfaceVariant.opacity80;
+    final colorScheme = context.colorScheme;
+    final mutedStyle = context.textTheme.bodySmall?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+    );
     return SizedBox(
       height: DashboardWidgetMetrics.heightOf(context, 2),
       child: RepaintBoundary(
@@ -25,13 +41,14 @@ class NetworkSpeed extends StatelessWidget {
           child: Consumer(
             builder: (_, ref, _) {
               final traffics = ref.watch(trafficsProvider);
-              return Column(
-                children: [
-                  Padding(
-                    padding: DashboardWidgetMetrics.paddingOf(
-                      context,
-                    ).copyWith(bottom: 0),
-                    child: Row(
+              final current = traffics.list.safeLast(const Traffic());
+              final down = current.down.traffic;
+              return Padding(
+                padding: DashboardWidgetMetrics.paddingOf(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
@@ -45,32 +62,51 @@ class NetworkSpeed extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          traffics.list.safeLast(const Traffic()).speedText,
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: color,
-                          ),
+                          '↑ ${current.up.traffic.show}/s',
+                          style: mutedStyle,
                         ),
                       ],
                     ),
-                  ),
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.all(
-                        16,
-                      ).copyWith(bottom: 0, left: 0, right: 0),
-                      child: LineChart(
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.bottomStart,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.bottomStart,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                down.value,
+                                style: TextStyle(
+                                  fontSize: _speedFontSize,
+                                  height: 1,
+                                  color: colorScheme.onSurface,
+                                ).toDoto,
+                              ),
+                              const SizedBox(width: 8),
+                              Text('↓ ${down.unit}/s', style: mutedStyle),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: _meterHeight,
+                      child: DotMeter(
                         values: [
                           for (final traffic in traffics.list)
                             traffic.speed.toDouble(),
                         ],
-                        revision: traffics.revision,
                         capacity: traffics.maxLength,
                         minScale: _minSpeedScale,
-                        color: context.colorScheme.primary,
+                        colors: _meterColors(colorScheme),
+                        unlitColor: colorScheme.surfaceContainerHighest,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),

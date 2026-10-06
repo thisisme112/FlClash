@@ -59,7 +59,7 @@ ColorScheme genColorScheme(
     seedColor: seedColor,
     brightness: brightness,
     dynamicSchemeVariant: themeSetting.schemeVariant,
-  ).toPureBlack(pureBlack ?? themeSetting.pureBlack);
+  ).toLab().toDotMatrix().toPureBlack(pureBlack ?? themeSetting.pureBlack);
 }
 
 typedef WindowBlurRequest = ({bool enabled, Brightness brightness, Color tint});

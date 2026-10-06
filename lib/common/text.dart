@@ -15,5 +15,10 @@ extension TextStyleExtension on TextStyle {
   TextStyle get toJetBrainsMono =>
       copyWith(fontFamily: FontFamily.jetBrainsMono.value);
 
+  TextStyle get toDoto => copyWith(
+    fontFamily: FontFamily.doto.value,
+    fontVariations: const [FontVariation.weight(900)],
+  );
+
   TextStyle adjustSize(int size) => copyWith(fontSize: fontSize! + size);
 }

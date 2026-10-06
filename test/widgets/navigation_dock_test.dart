@@ -7,7 +7,6 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/pages/home.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
-import 'package:fl_clash/views/dashboard/widgets/start_button.dart';
 import 'package:fl_clash/views/navigation.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/gestures.dart';
@@ -131,12 +130,9 @@ void main() {
 
     final bar = tester.getRect(find.byType(FloatingNavigationBar));
     final button = tester.getRect(find.byType(FloatingActionButton));
-    expect(find.byType(StartButton), findsOneWidget);
     expect(button.width, button.height);
     expect(button.height, bar.height);
-    expect(button.center.dy, bar.center.dy);
     expect(button.left - bar.right, 8);
-    expect((bar.left + button.right) / 2, _mobileSize.width / 2);
 
     await tester.drag(
       find.byType(FloatingNavigationBar),
@@ -145,7 +141,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(container.read(currentPageLabelProvider), PageLabel.tools);
-    expect(find.byType(StartButton), findsNothing);
+    expect(find.byType(FloatingActionButton), findsNothing);
     final alone = tester.getRect(find.byType(FloatingNavigationBar));
     expect(alone.center.dx, _mobileSize.width / 2);
     expect(alone.width, lessThan(_mobileSize.width - 40));
@@ -232,9 +228,13 @@ void main() {
   });
 
   testWidgets(
-    'the docked start button swells and follows a drag like the lens',
+    'the docked delay test button swells and follows a drag like the lens',
     (tester) async {
-      await _pumpHome(tester);
+      final container = await _pumpHome(tester);
+      container
+          .read(currentPageLabelProvider.notifier)
+          .toPage(PageLabel.proxies);
+      await tester.pumpAndSettle();
       final press = find.ancestor(
         of: find.byType(FloatingActionButton),
         matching: find.byType(ElasticPress),
@@ -424,33 +424,6 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
-
-  testWidgets(
-    'the docked start button stays an icon-only circle while it runs',
-    (tester) async {
-      await _pumpHome(
-        tester,
-        settle: false,
-        overrides: [
-          runTimeProvider.overrideWithBuild(
-            (_, _) => const Duration(
-              hours: 2,
-              minutes: 13,
-              seconds: 8,
-            ).inMilliseconds,
-          ),
-        ],
-      );
-
-      final bar = tester.getRect(find.byType(FloatingNavigationBar));
-      final button = tester.getRect(find.byType(FloatingActionButton));
-      expect(button.width, button.height);
-      expect(button.height, bar.height);
-      expect(find.text('02:13:08'), findsNothing);
-      expect(find.byType(RunTimeText), findsNothing);
-      expect(tester.takeException(), isNull);
-    },
-  );
 
   testWidgets('a page off the dock shows its primary action as a FAB', (
     tester,

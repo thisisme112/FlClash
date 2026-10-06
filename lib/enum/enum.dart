@@ -381,7 +381,8 @@ enum ProxiesIconStyle { filled, plain, hidden }
 
 enum FontFamily {
   twEmoji('Twemoji'),
-  jetBrainsMono('JetBrainsMono');
+  jetBrainsMono('JetBrainsMono'),
+  doto('Doto');
 
   final String value;
 

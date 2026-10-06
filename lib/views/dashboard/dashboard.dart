@@ -13,7 +13,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widget_metrics.dart';
 import 'widget_registry.dart';
 import 'widgets/core_status_button.dart';
-import 'widgets/start_button.dart';
+import 'widgets/access_plate.dart';
+import 'widgets/connect_switch.dart';
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
 
@@ -196,7 +197,6 @@ class _DashboardViewState extends ConsumerState<DashboardView>
       (isEdit) => CommonScaffold(
         title: context.appLocalizations.dashboard,
         actions: _buildActions(isEdit),
-        floatingActionButton: hasProfile ? const StartButton() : null,
         body: Align(
           alignment: Alignment.topCenter,
           // SingleChildScrollView snaps a bounce back to its edge whenever a
@@ -219,37 +219,20 @@ class _DashboardViewState extends ConsumerState<DashboardView>
                           constraints: BoxConstraints(
                             maxWidth: dashboardMaxGridWidth,
                           ),
-                          child: LayoutBuilder(
-                            builder: (_, constraints) {
-                              final band = DashboardGridBand.of(
-                                constraints.maxWidth,
-                              );
-                              final columns = band.columns;
-                              final grid = SuperGrid(
-                                key: key,
-                                editing: isEdit,
-                                crossAxisCount: columns,
-                                crossAxisSpacing: spacing,
-                                mainAxisSpacing: spacing,
-                                onChanged: _saveDashboardWidgets,
-                                revealPadding: padding.copyWith(
-                                  left: 0,
-                                  right: 0,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(bottom: spacing),
+                                child: const AccessPlate(),
+                              ),
+                              if (hasProfile)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: spacing),
+                                  child: const ConnectSwitch(),
                                 ),
-                                children: children,
-                              );
-                              return DashboardWidgetMetrics(
-                                unitHeight: dashboardUnitHeight(
-                                  constraints.maxWidth,
-                                ),
-                                child: isEdit
-                                    ? BackLayerScope(
-                                        onBack: _handleExitEdit,
-                                        child: grid,
-                                      )
-                                    : grid,
-                              );
-                            },
+                              _buildGrid(isEdit, padding, children),
+                            ],
                           ),
                         ),
                       ),
@@ -261,6 +244,32 @@ class _DashboardViewState extends ConsumerState<DashboardView>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGrid(bool isEdit, EdgeInsets padding, List<GridItem> children) {
+    final spacing = cardSpacing;
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final band = DashboardGridBand.of(constraints.maxWidth);
+        final columns = band.columns;
+        final grid = SuperGrid(
+          key: key,
+          editing: isEdit,
+          crossAxisCount: columns,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          onChanged: _saveDashboardWidgets,
+          revealPadding: padding.copyWith(left: 0, right: 0),
+          children: children,
+        );
+        return DashboardWidgetMetrics(
+          unitHeight: dashboardUnitHeight(constraints.maxWidth),
+          child: isEdit
+              ? BackLayerScope(onBack: _handleExitEdit, child: grid)
+              : grid,
+        );
+      },
     );
   }
 }

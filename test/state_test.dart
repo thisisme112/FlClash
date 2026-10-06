@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/color.dart';
 import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:material_ui/material_ui.dart';
@@ -39,7 +40,7 @@ void main() {
         seedColor: lightSeed,
         brightness: Brightness.light,
         dynamicSchemeVariant: variant,
-      ),
+      ).toLab(),
     );
     expect(
       container.read(genColorSchemeProvider(Brightness.dark)),
@@ -47,8 +48,25 @@ void main() {
         seedColor: darkSeed,
         brightness: Brightness.dark,
         dynamicSchemeVariant: variant,
-      ),
+      ).toDotMatrix(),
     );
+  });
+
+  test('each brightness swaps its own neutrals and keeps the seed accents', () {
+    final light = ColorScheme.fromSeed(seedColor: const Color(0xFF0000FF));
+    final seeded = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF0000FF),
+      brightness: Brightness.dark,
+    );
+    final dark = seeded.toDotMatrix();
+
+    expect(light.toDotMatrix(), light);
+    expect(dark.toLab(), dark);
+    expect(light.toLab().primary, light.primary);
+    expect(light.toLab().surface, isNot(light.surface));
+    expect(dark.primary, seeded.primary);
+    expect(dark.surface, isNot(seeded.surface));
+    expect(dark.outlineVariant, dark.surfaceContainerHighest);
   });
 
   test('pure black darkens only the dark scheme and keeps surface order', () {
@@ -93,7 +111,7 @@ void main() {
         dynamicSchemeVariant: container
             .read(themeSettingProvider)
             .schemeVariant,
-      ),
+      ).toLab(),
     );
   });
 }

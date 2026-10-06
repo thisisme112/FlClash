@@ -4,7 +4,7 @@ import 'package:fl_clash/icons/icons.dart';
 import 'package:fl_clash/manager/app_manager.dart';
 import 'package:fl_clash/models/common.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/views/dashboard/widgets/start_button.dart';
+import 'package:fl_clash/views/proxies/delay_test_button.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,57 +74,67 @@ class _HomeShell extends ConsumerWidget {
     final floating = ref.watch(
       appSettingProvider.select((state) => state.floatingNavigationBar),
     );
+    final pageLabel = ref.watch(currentPageLabelProvider);
     final hasProfile = ref.watch(
       profilesProvider.select((profiles) => profiles.isNotEmpty),
     );
-    final isDashboard = ref.watch(
-      currentPageLabelProvider.select((label) => label == PageLabel.dashboard),
-    );
+    final isStart = ref.watch(isStartProvider);
     return Material(
       color: context.colorScheme.surface,
       child: Column(
         children: [
           Expanded(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: FocusTraversalGroup(
-                    policy: PageTraversalPolicy(),
-                    child: BottomInsetScope(
-                      inset: isMobile && floating
-                          ? NavigationDock.insetOf(context)
-                          : 0,
-                      child: _BodyPadding(isMobile: isMobile, child: child),
-                    ),
-                  ),
-                ),
-                PositionedDirectional(
-                  start: 0,
-                  end: 0,
-                  bottom: 0,
-                  child: AnimatedVisibility.bottomNavigation(
-                    visible: isMobile && floating,
-                    child: _NavigationPadding(
-                      child: NavigationDock(
-                        destinations: [
-                          for (final item in navigationItems)
-                            NavigationDockDestination(
-                              glyph: item.glyph,
-                              label: item.label.label,
-                            ),
-                        ],
-                        selectedIndex: state.currentIndex,
-                        onSelected: (index) {
-                          _handleToPage(navigationItems[index].label, ref);
-                        },
-                        trailing: hasProfile && isDashboard
-                            ? const StartButton()
-                            : null,
+            child: Ignition(
+              active: !isMobile || isStart,
+              origin: _startButtonOrigin,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: FocusTraversalGroup(
+                      policy: PageTraversalPolicy(),
+                      child: BottomInsetScope(
+                        inset: isMobile && floating
+                            ? NavigationDock.insetOf(context)
+                            : 0,
+                        child: _BodyPadding(isMobile: isMobile, child: child),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  PositionedDirectional(
+                    start: 0,
+                    end: 0,
+                    bottom: 0,
+                    child: AnimatedVisibility.bottomNavigation(
+                      visible: isMobile && floating,
+                      child: _NavigationPadding(
+                        child: NavigationDock(
+                          destinations: [
+                            for (final item in navigationItems)
+                              NavigationDockDestination(
+                                glyph: item.glyph,
+                                label: item.label.label,
+                              ),
+                          ],
+                          selectedIndex: state.currentIndex,
+                          onSelected: (index) {
+                            _handleToPage(navigationItems[index].label, ref);
+                          },
+                          trailing: switch (pageLabel) {
+                            PageLabel.proxies => const ProxiesDelayTestButton(),
+                            PageLabel.dashboard when hasProfile => _StartButton(
+                              isStart: isStart,
+                              onPressed: ref
+                                  .read(commonActionProvider.notifier)
+                                  .toggleRunning,
+                            ),
+                            _ => null,
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           AnimatedVisibility.bottomNavigation(
@@ -150,6 +160,28 @@ class _HomeShell extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Roughly where the dock's trailing button sits on a phone.
+const _startButtonOrigin = Alignment(0.74, 0.88);
+
+class _StartButton extends StatelessWidget {
+  const _StartButton({required this.isStart, required this.onPressed});
+
+  final bool isStart;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      heroTag: null,
+      tooltip: isStart
+          ? context.appLocalizations.stop
+          : context.appLocalizations.start,
+      onPressed: onPressed,
+      child: GlyphIcon(AppGlyphs.playPause(isStart ? 1 : 0), fill: 1),
     );
   }
 }

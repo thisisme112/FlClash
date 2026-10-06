@@ -99,7 +99,10 @@ class ProxyCard extends ConsumerWidget {
                 );
               },
               isSelected: selectedProxyName == proxy.name,
-              child: child!,
+              child: _SelectionMark(
+                selected: selectedProxyName == proxy.name,
+                child: child!,
+              ),
             );
           },
           child: Container(
@@ -161,6 +164,144 @@ class ProxyCard extends ConsumerWidget {
   }
 }
 
+const _resultDuration = Duration(milliseconds: 360);
+const _markSize = 6.0;
+const _markInset = 4.0;
+const _selectedShift = 4.0;
+
+const _rippleDuration = Duration(milliseconds: 520);
+
+/// A dot that pops in at the card's leading edge while the content gives way,
+/// and a ring that runs out from it across the card when it is picked.
+class _SelectionMark extends StatefulWidget {
+  const _SelectionMark({required this.selected, required this.child});
+
+  final bool selected;
+  final Widget child;
+
+  @override
+  State<_SelectionMark> createState() => _SelectionMarkState();
+}
+
+class _SelectionMarkState extends State<_SelectionMark>
+    with SingleTickerProviderStateMixin {
+  late final _ripple = AnimationController(
+    vsync: this,
+    duration: _rippleDuration,
+    value: 1,
+  );
+
+  @override
+  void didUpdateWidget(_SelectionMark oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected &&
+        !oldWidget.selected &&
+        !MediaQuery.disableAnimationsOf(context)) {
+      _ripple.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ripple.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+    final duration = context.motionDuration(commonDuration);
+    return CustomPaint(
+      foregroundPainter: _RipplePainter(
+        progress: _ripple,
+        color: context.colorScheme.primary,
+        textDirection: Directionality.of(context),
+      ),
+      child: Stack(
+        children: [
+          AnimatedPadding(
+            padding: EdgeInsetsDirectional.only(
+              start: selected ? _selectedShift : 0,
+            ),
+            duration: duration,
+            curve: Curves.easeOutCubic,
+            child: widget.child,
+          ),
+          PositionedDirectional(
+            start: _markInset,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: AnimatedScale(
+                scale: selected ? 1 : 0,
+                duration: duration,
+                curve: Curves.easeOutBack,
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: context.colorScheme.primary,
+                    shape: AppShape.circle,
+                  ),
+                  child: const SizedBox.square(dimension: _markSize),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RipplePainter extends CustomPainter {
+  _RipplePainter({
+    required this.progress,
+    required this.color,
+    required this.textDirection,
+  }) : super(repaint: progress);
+
+  final Animation<double> progress;
+  final Color color;
+  final TextDirection textDirection;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final t = progress.value;
+    if (t >= 1) {
+      return;
+    }
+    const inset = _markInset + _markSize / 2;
+    final center = Offset(
+      textDirection == TextDirection.ltr ? inset : size.width - inset,
+      size.height / 2,
+    );
+    final radius = size.width * Curves.easeOutCubic.transform(t);
+    final fade = 1 - t;
+    canvas
+      ..save()
+      ..clipRect(Offset.zero & size)
+      ..drawCircle(
+        center,
+        radius,
+        Paint()..color = color.withValues(alpha: 0.14 * fade),
+      )
+      ..drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = color.withValues(alpha: 0.7 * fade),
+      )
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_RipplePainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.textDirection != textDirection;
+  }
+}
+
 class _DelayText extends ConsumerStatefulWidget {
   const _DelayText({
     required this.proxy,
@@ -179,6 +320,7 @@ class _DelayText extends ConsumerStatefulWidget {
 class _DelayTextState extends ConsumerState<_DelayText> {
   final FocusNode _focusNode = SkipTraversalFocusNode();
   bool _isFocused = false;
+  bool _tested = false;
 
   @override
   void initState() {
@@ -252,6 +394,7 @@ class _DelayTextState extends ConsumerState<_DelayText> {
         testUrl: widget.testUrl,
       ),
     );
+    _tested = _tested || phase != null;
     return Actions(
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
@@ -272,9 +415,18 @@ class _DelayTextState extends ConsumerState<_DelayText> {
             child: phase != null || delay == null
                 ? SizedBox(
                     height: measure.labelSmallHeight,
-                    width: measure.labelSmallHeight,
+                    width: phase == DelayTestPhase.running
+                        ? null
+                        : measure.labelSmallHeight,
                     child: _withFocusRing(context, switch (phase) {
-                      DelayTestPhase.running => const CommonCircleLoading(),
+                      DelayTestPhase.running => Center(
+                        widthFactor: 1,
+                        child: DotMarch(
+                          color: context.colorScheme.onSurface,
+                          unlitColor:
+                              context.colorScheme.surfaceContainerHighest,
+                        ),
+                      ),
                       DelayTestPhase.queued => GlyphIcon(
                         AppGlyphs.clock,
                         size: measure.labelSmallHeight,
@@ -293,12 +445,43 @@ class _DelayTextState extends ConsumerState<_DelayText> {
                     onTap: _handleTestCurrentDelay,
                     child: _withFocusRing(
                       context,
-                      Text(
-                        delay > 0 ? '$delay ms' : 'Timeout',
-                        maxLines: 1,
-                        style: context.textTheme.labelSmall?.copyWith(
-                          overflow: TextOverflow.ellipsis,
-                          color: context.colorScheme.delayColor(delay),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: _tested ? 0 : 1, end: 1),
+                        duration: context.motionDuration(_resultDuration),
+                        curve: Curves.easeOutBack,
+                        builder: (context, reveal, _) => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 6,
+                          children: [
+                            Flexible(
+                              child: Transform.scale(
+                                scale: 0.6 + 0.4 * reveal,
+                                alignment: AlignmentDirectional.centerEnd
+                                    .resolve(Directionality.of(context)),
+                                child: Text(
+                                  delay > 0 ? '$delay ms' : 'Timeout',
+                                  maxLines: 1,
+                                  style: context.textTheme.labelSmall?.copyWith(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: context.colorScheme.delayColor(
+                                      delay,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DotSignal(
+                              level:
+                                  (DotSignal.levelOfDelay(delay) *
+                                          reveal.clamp(0.0, 1.0))
+                                      .round(),
+                              color:
+                                  context.colorScheme.delayColor(delay) ??
+                                  context.colorScheme.onSurface,
+                              unlitColor:
+                                  context.colorScheme.surfaceContainerHighest,
+                            ),
+                          ],
                         ),
                       ),
                     ),

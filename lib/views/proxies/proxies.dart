@@ -60,7 +60,7 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
   }
 
   IconButtonData? _buildPrimaryAction() {
-    if (!_isTab) {
+    if (!_isTab || DockedPageScope.of(context)) {
       return null;
     }
     final currentGroupName = ref.watch(

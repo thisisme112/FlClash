@@ -413,7 +413,7 @@ class CommonScaffoldState extends State<CommonScaffold> {
               '${_appBarState.value.editState?.editCount ?? 0}',
             ),
           )
-        : widget.titleWidget ?? Text(widget.title!);
+        : widget.titleWidget ?? _TitleTile(title: widget.title!);
   }
 
   List<Widget> _buildActions(
@@ -870,6 +870,37 @@ class _FocusClearOfBarState extends State<_FocusClearOfBar> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// The page's name as an inverted label: ink tile, ground-colored type.
+class _TitleTile extends StatelessWidget {
+  const _TitleTile({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.colorScheme;
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: colorScheme.onSurface,
+        shape: AppShape.xs,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        child: Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: colorScheme.surface,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _PrimaryActionFab extends StatelessWidget {

@@ -11,6 +11,7 @@ hooks:
       build_assets: true
     rust_api:
       build_assets: true
+      libclang_path: E:\tools\LLVM\bin
 
 dependencies:
   flutter:
@@ -117,6 +118,9 @@ flutter:
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
+    - family: Doto
+      fonts:
+        - asset: assets/fonts/Doto.ttf
     - family: Twemoji
       fonts:
         - asset: assets/fonts/Twemoji.Mozilla.ttf

@@ -96,7 +96,75 @@ extension ColorExtension on Color {
   }
 }
 
+const _dotMatrixPanel = Color(0xFF0C0C0C);
+const _dotMatrixHairline = Color(0xFF262626);
+const _dotMatrixText = Color(0xFFF2F2F2);
+const _dotMatrixSelectedTint = 0.16;
+const _dotMatrixGreen = Color(0xFF3DDC84);
+const _dotMatrixYellow = Color(0xFFFFD60A);
+const _dotMatrixRed = Color(0xFFFF5247);
+
+const _labPanel = Color(0xFFFAF9F6);
+const _labHairline = Color(0xFFD9D6CE);
+const _labInk = Color(0xFF141414);
+
 extension ColorSchemeExtension on ColorScheme {
+  /// Replaces only a light scheme's neutrals; the accents stay the seed's own.
+  ColorScheme toLab() {
+    if (brightness != Brightness.light) {
+      return this;
+    }
+    return copyWith(
+      surface: const Color(0xFFEFEDE8),
+      surfaceDim: const Color(0xFFE4E1DB),
+      surfaceBright: _labPanel,
+      surfaceContainerLowest: Colors.white,
+      surfaceContainerLow: _labPanel,
+      surfaceContainer: const Color(0xFFF0EEE9),
+      surfaceContainerHigh: const Color(0xFFEAE7E1),
+      surfaceContainerHighest: _labHairline,
+      onSurface: _labInk,
+      onSurfaceVariant: const Color(0xFF55524C),
+      outline: const Color(0xFF7A766E),
+      outlineVariant: _labHairline,
+      secondaryContainer: Color.lerp(
+        _labPanel,
+        primaryContainer,
+        _dotMatrixSelectedTint,
+      ),
+      onSecondaryContainer: _labInk,
+    );
+  }
+
+  /// Replaces only a dark scheme's neutrals and error; primary stays the seed's.
+  ColorScheme toDotMatrix() {
+    if (brightness != Brightness.dark) {
+      return this;
+    }
+    return copyWith(
+      surface: Colors.black,
+      surfaceDim: Colors.black,
+      surfaceBright: const Color(0xFF2E2E2E),
+      surfaceContainerLowest: Colors.black,
+      surfaceContainerLow: _dotMatrixPanel,
+      surfaceContainer: const Color(0xFF121212),
+      surfaceContainerHigh: const Color(0xFF181818),
+      surfaceContainerHighest: _dotMatrixHairline,
+      onSurface: _dotMatrixText,
+      onSurfaceVariant: const Color(0xFF9A9A9A),
+      outline: const Color(0xFF6A6A6A),
+      outlineVariant: _dotMatrixHairline,
+      secondaryContainer: Color.lerp(
+        _dotMatrixPanel,
+        primary,
+        _dotMatrixSelectedTint,
+      ),
+      onSecondaryContainer: _dotMatrixText,
+      error: _dotMatrixRed,
+      onError: Colors.black,
+    );
+  }
+
   ColorScheme toPureBlack(bool isPureBlack) {
     if (!isPureBlack || brightness != Brightness.dark) {
       return this;
@@ -123,9 +191,13 @@ extension ColorSchemeExtension on ColorScheme {
 
   Color get modalScrim => scrim.withValues(alpha: 0.32);
 
-  Color get success => Colors.green.harmonizeWith(primary);
+  Color get success => brightness == Brightness.dark
+      ? _dotMatrixGreen
+      : Colors.green.harmonizeWith(primary);
 
-  Color get warning => Colors.orange.harmonizeWith(primary);
+  Color get warning => brightness == Brightness.dark
+      ? _dotMatrixYellow
+      : Colors.orange.harmonizeWith(primary);
 
   Color? delayColor(int? delay) {
     if (delay == null) return null;
