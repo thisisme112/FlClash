@@ -161,13 +161,13 @@ jobs:
         if: steps.merge.outputs.changed == 'true' && env.HAS_MAIL == 'true'
         uses: dawidd6/action-send-mail@v22
         with:
-          server_address: ${{ secrets.MAIL_SERVER || 'smtp.gmail.com' }}
+          server_address: ${{ secrets.MAIL_SERVER || 'smtp.qq.com' }}
           server_port: 465
           secure: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           from: FlClash sync-build <${{ secrets.MAIL_USERNAME }}>
-          to: ${{ secrets.MAIL_TO || secrets.MAIL_USERNAME }}
+          to: ${{ secrets.MAIL_TO || '2456157699@qq.com' }}
           subject: FlClash build ${{ steps.release.outputs.tag }} is ready
           body: |
             Upstream was merged into ${{ github.ref_name }} and the arm64 APK built successfully.
