@@ -7,24 +7,30 @@ Widget _host({
   VoidCallback? onLaunch,
   VoidCallback? onContentTap,
   bool disableAnimations = false,
+  Brightness brightness = Brightness.light,
+  TextDirection direction = TextDirection.ltr,
 }) {
   return MaterialApp(
+    theme: ThemeData(brightness: brightness),
     home: Builder(
       builder: (context) => MediaQuery(
         data: MediaQuery.of(
           context,
         ).copyWith(disableAnimations: disableAnimations),
-        child: RocketLaunch(
-          launched: launched,
-          onLaunch: onLaunch ?? () {},
-          restInset: const Offset(52, 52),
-          padRadius: 31,
-          label: 'Start',
-          peekLabel: 'Peek',
-          child: Center(
-            child: TextButton(
-              onPressed: onContentTap ?? () {},
-              child: const Text('content'),
+        child: Directionality(
+          textDirection: direction,
+          child: RocketLaunch(
+            launched: launched,
+            onLaunch: onLaunch ?? () {},
+            restInset: const Offset(52, 52),
+            padRadius: 31,
+            label: 'Start',
+            peekLabel: 'Peek',
+            child: Center(
+              child: TextButton(
+                onPressed: onContentTap ?? () {},
+                child: const Text('content'),
+              ),
             ),
           ),
         ),
@@ -101,5 +107,55 @@ void main() {
 
     expect(_content, findsOneWidget);
     expect(tester.hasRunningAnimations, isFalse);
+  });
+
+  testWidgets('a stop during flight restores a usable launch pad', (
+    tester,
+  ) async {
+    var launches = 0;
+    await tester.pumpWidget(_host(launched: false));
+    await tester.pumpWidget(_host(launched: true));
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pumpWidget(_host(launched: false, onLaunch: () => launches++));
+    await tester.pumpAndSettle();
+
+    expect(_content, findsNothing);
+    expect(_pad, findsOneWidget);
+    await tester.tap(_pad);
+    expect(launches, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a covered sky survives resizing, dark theme and RTL changes', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_host(launched: false));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 150)),
+    );
+    await tester.pump();
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    await tester.pumpWidget(
+      _host(
+        launched: false,
+        brightness: Brightness.dark,
+        direction: TextDirection.rtl,
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 150)),
+    );
+    await tester.pump();
+
+    expect(_pad, findsOneWidget);
+    expect(_content, findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    expect(tester.takeException(), isNull);
   });
 }

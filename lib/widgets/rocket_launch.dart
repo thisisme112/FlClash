@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -6,18 +7,17 @@ import 'package:material_ui/material_ui.dart';
 
 import 'navigation_dock.dart';
 
-const _launchDuration = Duration(milliseconds: 1800);
+const _launchDuration = Duration(milliseconds: 2200);
 const _landDuration = Duration(milliseconds: 900);
-const _ignite = Interval(0, 0.12, curve: Curves.easeOut);
-const _flight = Interval(0.05, 0.42, curve: Curves.easeInCubic);
-const _parting = Interval(0.34, 1);
-const _beam = Interval(0.34, 0.8, curve: Curves.easeOut);
-const _wave = Interval(0.34, 0.85, curve: Curves.easeOutCubic);
-const _settle = Interval(0.34, 1, curve: Curves.easeOutCubic);
-const _revealZoom = 0.06;
-const _farScale = 0.55;
-const _shake = 1.6;
-const _rocketToPad = 1.7;
+const _ignite = Interval(0, 0.14, curve: Curves.easeOut);
+const _flight = Interval(0.08, 0.6, curve: Curves.easeInCubic);
+const _parting = Interval(0.5, 1);
+const _beam = Interval(0.5, 0.86, curve: Curves.easeOut);
+const _settle = Interval(0.5, 1, curve: Curves.easeOutCubic);
+const _revealZoom = 0.025;
+const _farScale = 0.38;
+const _shake = 0.35;
+const _rocketToPad = 1.95;
 const _billowReach = 26.0;
 const _maxSkyScale = 2.0;
 
@@ -67,7 +67,9 @@ class _RocketLaunchState extends State<RocketLaunch>
   _SkyPrograms? _programs;
   ui.FragmentShader? _cover;
   ui.Image? _sky;
-  (Size, double, bool)? _skyKey;
+  (Size, double, bool, TextDirection)? _skyKey;
+  final _artwork = <bool, ui.Image>{};
+  final _requestedArtwork = <bool>{};
 
   bool get _open => widget.launched || _peeking;
 
@@ -79,38 +81,90 @@ class _RocketLaunchState extends State<RocketLaunch>
         return;
       }
       setState(() {
+        _skyKey = null;
         _programs = programs;
         _cover = programs.cover.fragmentShader();
       });
     });
   }
 
-  /// Paints the idle sky once per size and theme; every frame after that only
-  /// tears and shifts this image.
-  ui.Image? _skyFor(Size size, double scale, bool dusk) {
-    final key = (size, scale, dusk);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_controller.isCompleted) {
+      unawaited(_loadArtwork(Theme.of(context).brightness == Brightness.dark));
+    }
+  }
+
+  Future<void> _loadArtwork(bool dusk) async {
+    if (!_requestedArtwork.add(dusk)) {
+      return;
+    }
+    ui.Codec? codec;
+    try {
+      final data = await rootBundle.load(
+        'assets/images/launch_${dusk ? 'dusk' : 'noon'}.png',
+      );
+      codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      );
+      final frame = await codec.getNextFrame();
+      if (!mounted) {
+        frame.image.dispose();
+        return;
+      }
+      setState(() {
+        _artwork[dusk] = frame.image;
+        _skyKey = null;
+      });
+    } catch (_) {
+      // Keep the shader sky when artwork cannot be decoded by the renderer.
+    } finally {
+      codec?.dispose();
+    }
+  }
+
+  ui.Image? _skyFor(
+    Size size,
+    double scale,
+    bool dusk,
+    TextDirection direction,
+  ) {
+    final key = (size, scale, dusk, direction);
     if (key == _skyKey) {
       return _sky;
     }
+    final artwork = _artwork[dusk];
     final programs = _programs;
-    if (programs == null || size.isEmpty) {
+    if (size.isEmpty || (artwork == null && programs == null)) {
       return null;
     }
-    final shader = programs.sky.fragmentShader()
-      ..setFloat(0, size.width)
-      ..setFloat(1, size.height)
-      ..setFloat(2, dusk ? 1 : 0);
     final recorder = ui.PictureRecorder();
-    Canvas(recorder)
-      ..scale(scale)
-      ..drawRect(Offset.zero & size, Paint()..shader = shader);
+    final canvas = Canvas(recorder)..scale(scale);
+    ui.FragmentShader? shader;
+    if (artwork != null) {
+      paintImage(
+        canvas: canvas,
+        rect: Offset.zero & size,
+        image: artwork,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.medium,
+        flipHorizontally: direction == TextDirection.rtl,
+      );
+    } else {
+      shader = programs!.sky.fragmentShader()
+        ..setFloat(0, size.width)
+        ..setFloat(1, size.height)
+        ..setFloat(2, dusk ? 1 : 0);
+      canvas.drawRect(Offset.zero & size, Paint()..shader = shader);
+    }
     final picture = recorder.endRecording();
     final image = picture.toImageSync(
       (size.width * scale).ceil(),
       (size.height * scale).ceil(),
     );
     picture.dispose();
-    shader.dispose();
+    shader?.dispose();
     _sky?.dispose();
     _skyKey = key;
     return _sky = image;
@@ -125,6 +179,9 @@ class _RocketLaunchState extends State<RocketLaunch>
     final wasOpen = oldWidget.launched || _peeking;
     _peeking = false;
     _animate(wasOpen);
+    if (!_open) {
+      unawaited(_loadArtwork(Theme.of(context).brightness == Brightness.dark));
+    }
   }
 
   void _peek() {
@@ -150,6 +207,9 @@ class _RocketLaunchState extends State<RocketLaunch>
     _controller.dispose();
     _cover?.dispose();
     _sky?.dispose();
+    for (final image in _artwork.values) {
+      image.dispose();
+    }
     super.dispose();
   }
 
@@ -160,11 +220,14 @@ class _RocketLaunchState extends State<RocketLaunch>
       MediaQuery.devicePixelRatioOf(context),
       _maxSkyScale,
     );
-    final course = _courseOf(Directionality.of(context));
+    final direction = Directionality.of(context);
+    final course = _courseOf(direction);
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
-        final sky = _skyFor(size, scale, dusk);
+        final sky = _controller.isCompleted
+            ? null
+            : _skyFor(size, scale, dusk, direction);
         final inset = widget.restInset;
         final rest = Offset(
           course.dx > 0 ? inset.dx : size.width - inset.dx,
@@ -296,39 +359,12 @@ class RocketIcon extends StatelessWidget {
 }
 
 const _white = Color(0xFFFFFFFF);
-const _line = Color(0x731E2846);
-
-// Warm key light on the lit side (+x), cool sky bounce in the shadow.
-const _hull = [
-  Color(0xFF7E8FB0),
-  Color(0xFFB9C7DE),
-  Color(0xFFEEF3FA),
-  Color(0xFFFFFFFF),
-  Color(0xFFFFF1D6),
-];
-const _livery = [
-  Color(0xFF6E1820),
-  Color(0xFFB52A33),
-  Color(0xFFE5474A),
-  Color(0xFFFF7F6A),
-  Color(0xFFFFB48C),
-];
-const _finLit = [Color(0xFFC9333B), Color(0xFFF06A5A), Color(0xFFFFAA82)];
-const _finShade = [Color(0xFF4E2A55), Color(0xFF7A2231), Color(0xFF9E2A35)];
-const _keel = [
-  Color(0xFF4E2A55),
-  Color(0xFF7A2231),
-  Color(0xFF9E2A35),
-  Color(0xFFF06A5A),
-  Color(0xFFFFAA82),
-];
-const _metal = [
-  Color(0xFF3F4A63),
-  Color(0xFF8E9CB8),
-  Color(0xFFD9E1EE),
-  Color(0xFF9AA8C2),
-];
-const _glass = [Color(0xFF9FD6FF), Color(0xFF2F74D0), Color(0xFF13306E)];
+const _ink = Color(0xA33B5078);
+const _shadow = Color(0xFF9EBADE);
+const _deepBlue = Color(0xFF354F80);
+const _blue = Color(0xFF628DC5);
+const _rim = Color(0xFFFFE8C5);
+const _accent = Color(0xFFEDA889);
 
 Paint _radial(
   Offset center,
@@ -336,14 +372,6 @@ Paint _radial(
   List<Color> colors,
   List<double> stops,
 ) => Paint()..shader = ui.Gradient.radial(center, radius, colors, stops);
-
-/// A horizontal gradient spread evenly over [colors], for shading a round
-/// part lit from one side.
-Paint _across(double from, double to, List<Color> colors) => Paint()
-  ..shader = ui.Gradient.linear(Offset(from, 0), Offset(to, 0), colors, [
-    for (var index = 0; index < colors.length; index++)
-      index / (colors.length - 1),
-  ]);
 
 void _paintPad(
   Canvas canvas,
@@ -355,112 +383,83 @@ void _paintPad(
   if (fade <= 0) {
     return;
   }
-  final reach = radius * (1 + 0.6 * spread);
+  final reach = radius * (1 + 0.45 * spread);
   canvas
     ..drawCircle(
       center,
-      reach * 1.2,
+      reach * 1.3,
       _radial(
         center,
-        reach * 1.2,
+        reach * 1.3,
         [
-          _white.withValues(alpha: 0),
-          _white.withValues(alpha: 0.12 * fade),
-          _white.withValues(alpha: 0.45 * fade),
+          const Color(0xFF9BCDF5).withValues(alpha: 0.2 * fade),
           _white.withValues(alpha: 0),
         ],
-        const [0, 0.55, 0.82, 1],
+        const [0, 1],
       ),
     )
     ..drawCircle(
       center,
-      reach - 1.5,
+      reach,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = _white.withValues(alpha: 0.85 * fade),
+        ..strokeWidth = 0.8
+        ..color = _white.withValues(alpha: 0.65 * fade),
     );
 }
 
 void _paintFlame(
   Canvas canvas,
-  double l,
-  double hw,
+  double length,
+  double halfWidth,
   double thrust,
   double flicker,
 ) {
-  final nozzle = Offset(0, l * 0.34);
-  final reach = l * (0.45 + 0.85 * thrust) * flicker;
-  final bloom = l * 0.9 * thrust;
+  final nozzle = Offset(0, length * 0.38);
+  final reach = length * (0.25 + thrust) * flicker;
+  final radius = length * 0.42 * thrust;
   canvas.drawCircle(
     nozzle,
-    bloom,
+    radius,
     _radial(
       nozzle,
-      bloom,
-      const [
-        Color(0xE6FFFAE6),
-        Color(0x8CFFD68C),
-        Color(0x2EFF9650),
-        Color(0x00FF783C),
-      ],
-      const [0, 0.18, 0.5, 1],
+      radius,
+      const [Color(0xB3E8F9FF), Color(0x3382C8FF), Color(0x0082C8FF)],
+      const [0, 0.3, 1],
     ),
   );
-  void plume(
-    double width,
-    double length,
-    List<Color> colors,
-    List<double> stops,
-  ) {
-    final w = hw * width;
-    final y = nozzle.dy;
-    canvas.drawPath(
-      Path()
-        ..moveTo(-w, y)
-        ..cubicTo(
-          -w * 1.3,
-          y + length * 0.35,
-          -w * 0.45,
-          y + length * 0.8,
-          0,
-          y + length,
-        )
-        ..cubicTo(w * 0.45, y + length * 0.8, w * 1.3, y + length * 0.35, w, y)
-        ..close(),
-      Paint()
-        ..shader = ui.Gradient.linear(
-          nozzle,
-          nozzle + Offset(0, length),
-          colors,
-          stops,
-        ),
-    );
-  }
-
-  plume(
-    1,
-    reach,
-    const [Color(0xF2FFBE64), Color(0xB3FF783C), Color(0x00FF5A3C)],
-    const [0, 0.4, 1],
-  );
-  plume(
-    0.62,
-    reach * 0.66,
-    const [Color(0xFFFFF8D2), Color(0xD9FFD678), Color(0x00FFBE5A)],
-    const [0, 0.6, 1],
-  );
-  plume(
-    0.3,
-    reach * 0.4,
-    const [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
-    const [0, 1],
+  final plume = Path()
+    ..moveTo(-halfWidth * 0.65, nozzle.dy)
+    ..quadraticBezierTo(
+      -halfWidth * 0.9,
+      nozzle.dy + reach * 0.3,
+      0,
+      nozzle.dy + reach,
+    )
+    ..quadraticBezierTo(
+      halfWidth * 0.9,
+      nozzle.dy + reach * 0.3,
+      halfWidth * 0.65,
+      nozzle.dy,
+    )
+    ..close();
+  canvas.drawPath(
+    plume,
+    Paint()
+      ..shader = ui.Gradient.linear(
+        nozzle,
+        nozzle + Offset(0, reach),
+        const [
+          Color(0xFFFFF6E2),
+          Color(0xFFE9F9FF),
+          Color(0x667DC8FF),
+          Color(0x007DC8FF),
+        ],
+        const [0, 0.2, 0.6, 1],
+      ),
   );
 }
 
-/// A painted white rocket with a red livery, drawn nose-up around its middle
-/// and turned to [heading]. Its lit side is +x, which faces the sun once it
-/// points up and toward the start side.
 void _paintRocket(
   Canvas canvas, {
   required Offset center,
@@ -470,17 +469,12 @@ void _paintRocket(
   double flicker = 1,
 }) {
   final l = length;
-  final hw = l * 0.15;
-  final base = l * 0.26;
-  final line = Paint()
+  final hw = l * 0.09;
+  final outline = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = l * 0.012
+    ..strokeWidth = l * 0.008
     ..strokeJoin = StrokeJoin.round
-    ..color = _line;
-  void part(Path path, Paint fill) => canvas
-    ..drawPath(path, fill)
-    ..drawPath(path, line);
-
+    ..color = _ink;
   canvas
     ..save()
     ..translate(center.dx, center.dy)
@@ -489,121 +483,80 @@ void _paintRocket(
     _paintFlame(canvas, l, hw, thrust, flicker);
   }
   for (final side in const [-1.0, 1.0]) {
-    part(
-      Path()
-        ..moveTo(side * hw * 0.85, -l * 0.02)
-        ..quadraticBezierTo(
-          side * hw * 2.3,
-          l * 0.13,
-          side * hw * 2.2,
-          l * 0.39,
-        )
-        ..lineTo(side * hw * 1.5, l * 0.33)
-        ..quadraticBezierTo(
-          side * hw * 1.05,
-          l * 0.28,
-          side * hw * 0.85,
-          l * 0.27,
-        )
-        ..close(),
-      _across(
-        side * hw * 0.85,
-        side * hw * 2.3,
-        side > 0 ? _finLit : _finShade,
-      ),
-    );
+    final fin = Path()
+      ..moveTo(side * hw * 0.8, l * 0.05)
+      ..lineTo(side * hw * 2.0, l * 0.34)
+      ..lineTo(side * hw * 1.85, l * 0.4)
+      ..lineTo(side * hw * 0.7, l * 0.28)
+      ..close();
+    canvas
+      ..drawPath(fin, Paint()..color = side < 0 ? _deepBlue : _blue)
+      ..drawPath(fin, outline);
   }
-  part(
-    Path()
-      ..moveTo(-hw * 0.6, base - 1)
-      ..lineTo(hw * 0.6, base - 1)
-      ..lineTo(hw * 0.8, l * 0.35)
-      ..lineTo(-hw * 0.8, l * 0.35)
-      ..close(),
-    _across(-hw * 0.8, hw * 0.8, _metal),
-  );
-  final body = Path()
-    ..moveTo(0, -l * 0.5)
-    ..cubicTo(hw * 0.62, -l * 0.44, hw, -l * 0.3, hw, -l * 0.12)
-    ..lineTo(hw, l * 0.17)
-    ..quadraticBezierTo(hw, base, hw * 0.82, base)
-    ..lineTo(-hw * 0.82, base)
-    ..quadraticBezierTo(-hw, base, -hw, l * 0.17)
-    ..lineTo(-hw, -l * 0.12)
-    ..cubicTo(-hw, -l * 0.3, -hw * 0.62, -l * 0.44, 0, -l * 0.5)
+  final nozzle = Path()
+    ..moveTo(-hw * 0.55, l * 0.3)
+    ..lineTo(hw * 0.55, l * 0.3)
+    ..lineTo(hw * 0.7, l * 0.38)
+    ..lineTo(-hw * 0.7, l * 0.38)
     ..close();
-  final livery = _across(-hw, hw, _livery);
+  canvas.drawPath(nozzle, Paint()..color = _deepBlue);
+  final hull = Path()
+    ..moveTo(0, -l * 0.56)
+    ..cubicTo(hw * 0.25, -l * 0.49, hw, -l * 0.3, hw, -l * 0.16)
+    ..lineTo(hw * 0.85, l * 0.31)
+    ..quadraticBezierTo(0, l * 0.35, -hw * 0.85, l * 0.31)
+    ..lineTo(-hw, -l * 0.16)
+    ..cubicTo(-hw, -l * 0.3, -hw * 0.25, -l * 0.49, 0, -l * 0.56)
+    ..close();
   canvas
-    ..drawPath(body, _across(-hw, hw, _hull))
+    ..drawPath(hull, Paint()..color = const Color(0xFFF5F8FF))
     ..save()
-    ..clipPath(body)
-    ..drawRect(Rect.fromLTWH(-hw, -l * 0.5, hw * 2, l * 0.21), livery)
-    ..drawRect(Rect.fromLTWH(-hw, l * 0.07, hw * 2, l * 0.05), livery)
-    ..drawRect(
-      Rect.fromLTWH(-hw, -l * 0.5, hw * 2, l),
-      Paint()
-        ..shader = ui.Gradient.linear(Offset(0, -l * 0.5), Offset(0, base), [
-          _white.withValues(alpha: 0),
-          const Color(0x38283C5A),
-        ]),
-    )
-    ..drawRect(
-      Rect.fromLTWH(hw * 0.5, -l * 0.27, hw * 0.12, l * 0.36),
-      Paint()..color = _white.withValues(alpha: 0.85),
-    )
-    ..restore()
-    ..drawPath(body, line);
-  part(
-    Path()
-      ..moveTo(-hw * 0.17, l * 0.1)
-      ..lineTo(hw * 0.17, l * 0.1)
-      ..lineTo(hw * 0.17, l * 0.38)
-      ..quadraticBezierTo(0, l * 0.43, -hw * 0.17, l * 0.38)
-      ..close(),
-    _across(-hw * 0.17, hw * 0.17, _keel),
-  );
-  final window = Offset(0, -l * 0.1);
-  final outer = hw * 0.58;
-  final inner = hw * 0.44;
-  final glass = Path()..addOval(Rect.fromCircle(center: window, radius: inner));
-  canvas
-    ..drawCircle(window, outer, _across(-outer, outer, _metal))
+    ..clipPath(hull)
     ..drawPath(
-      glass,
-      Paint()
-        ..shader = ui.Gradient.linear(
-          window - Offset(0, inner),
-          window + Offset(0, inner),
-          _glass,
-          const [0, 0.45, 1],
-        ),
+      Path()
+        ..moveTo(0, -l * 0.56)
+        ..quadraticBezierTo(-hw * 0.4, -l * 0.1, -hw * 0.25, l * 0.32)
+        ..lineTo(-hw * 1.1, l * 0.36)
+        ..lineTo(-hw * 1.1, -l * 0.56)
+        ..close(),
+      Paint()..color = _shadow,
     )
-    ..save()
-    ..clipPath(glass)
-    ..translate(window.dx + inner * 0.25, window.dy - inner * 0.35)
-    ..rotate(-0.5)
-    ..drawOval(
-      Rect.fromCenter(
-        center: Offset.zero,
-        width: inner * 1.1,
-        height: inner * 0.44,
-      ),
-      Paint()..color = _white.withValues(alpha: 0.75),
+    ..drawPath(
+      Path()
+        ..moveTo(hw * 0.35, -l * 0.4)
+        ..quadraticBezierTo(hw * 0.9, -l * 0.15, hw * 0.5, l * 0.31)
+        ..lineTo(hw * 1.1, l * 0.31)
+        ..lineTo(hw * 1.1, -l * 0.4)
+        ..close(),
+      Paint()..color = _rim,
+    )
+    ..drawRect(
+      Rect.fromLTWH(-hw, l * 0.18, hw * 2, l * 0.035),
+      Paint()..color = _accent,
+    )
+    ..drawRect(
+      Rect.fromLTWH(-hw, l * 0.25, hw * 2, l * 0.05),
+      Paint()..color = _blue,
     )
     ..restore()
-    ..drawPath(glass, line);
-  final glint = Offset(hw * 0.62, -l * 0.33);
+    ..drawPath(hull, outline);
+  final glass = Path()
+    ..moveTo(0, -l * 0.29)
+    ..quadraticBezierTo(hw * 0.5, -l * 0.19, hw * 0.45, -l * 0.11)
+    ..lineTo(-hw * 0.45, -l * 0.11)
+    ..quadraticBezierTo(-hw * 0.5, -l * 0.19, 0, -l * 0.29)
+    ..close();
   canvas
-    ..drawCircle(
-      glint,
-      hw * 0.5,
-      _radial(
-        glint,
-        hw * 0.5,
-        [_white.withValues(alpha: 0.95), _white.withValues(alpha: 0)],
-        const [0, 1],
-      ),
+    ..drawPath(glass, Paint()..color = _deepBlue)
+    ..drawLine(
+      Offset(hw * 0.14, -l * 0.23),
+      Offset(hw * 0.3, -l * 0.14),
+      Paint()
+        ..strokeWidth = l * 0.012
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFFBDEBFF),
     )
+    ..drawLine(Offset(-hw * 0.6, l * 0.05), Offset(hw * 0.6, l * 0.05), outline)
     ..restore();
 }
 
@@ -749,6 +702,14 @@ class _LaunchPainter extends CustomPainter {
     final cover = this.cover;
     if (sky != null && cover != null) {
       _paintCover(canvas, size, sky, cover, end);
+    } else if (sky != null) {
+      canvas.drawImageRect(
+        sky,
+        Rect.fromLTWH(0, 0, sky.width.toDouble(), sky.height.toDouble()),
+        Offset.zero & size,
+        Paint()
+          ..color = _white.withValues(alpha: 1 - _settle.transform(progress)),
+      );
     } else {
       canvas.drawRect(
         Offset.zero & size,
@@ -782,8 +743,6 @@ class _LaunchPainter extends CustomPainter {
     final wake = _Wake(size, rest, course, progress);
     final trailEnd = Offset.lerp(rest, end, _flight.transform(progress))!;
     final beaming = progress > _beam.begin && progress < _beam.end;
-    final waving = progress > _wave.begin && progress < _wave.end;
-    final wave = _wave.transform(progress);
     final uniforms = [
       size.width,
       size.height,
@@ -799,11 +758,9 @@ class _LaunchPainter extends CustomPainter {
       rest.dy,
       trailEnd.dx,
       trailEnd.dy,
-      _rocketLength * 0.3,
+      _rocketLength * 0.07,
       _ignite.transform(progress),
       beaming ? 1 - _beam.transform(progress) : 0.0,
-      waving ? wave * size.longestSide * 0.75 : 0.0,
-      waving ? 0.6 * (1 - wave) : 0.0,
     ];
     for (final (index, value) in uniforms.indexed) {
       cover.setFloat(index, value);
@@ -821,7 +778,7 @@ class _LaunchPainter extends CustomPainter {
     final settling = (1 - flown * 50).clamp(0.0, 1.0);
     final shake =
         Offset(-course.dy, course.dx) *
-        math.sin(progress * 900) *
+        math.sin(progress * 160) *
         _shake *
         launch *
         settling;
@@ -831,7 +788,7 @@ class _LaunchPainter extends CustomPainter {
       length: _rocketLength * (1 - (1 - _farScale) * flown),
       heading: _headingOf(course),
       thrust: launch,
-      flicker: 0.9 + 0.1 * math.sin(progress * 160),
+      flicker: 0.97 + 0.03 * math.sin(progress * 90),
     );
   }
 
