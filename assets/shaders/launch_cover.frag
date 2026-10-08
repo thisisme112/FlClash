@@ -71,13 +71,32 @@ vec3 cloudTone(float lit) {
   return mix(tone, light, smoothstep(0.72, 1.0, lit));
 }
 
-// How far the sky has torn at s along the wake, 0 to about 1: a thin tear
-// runs out from the middle, then widens into a lens.
+// How far the sky has torn at s along the wake, 0 to about 1. The tear outruns
+// the screen almost at once, so no pointed ends are seen closing it in.
 float openAt(float s) {
-  float front = uHalfSpan * (0.1 + 3.2 * uParting);
+  float front = uHalfSpan * (0.6 + 8.0 * uParting);
   float x = s / front;
   float width = uParting * uParting * (3.0 - 2.0 * uParting);
   return width * sqrt(max(0.0, 1.0 - x * x));
+}
+
+// The banks are shoved apart fastest at the ends, so each turns a rounded face
+// to the gap, ")(", rather than closing around it like an eye.
+float gapAt(float s, float open) {
+  float reach = min(abs(s) / uHalfSpan, 1.0);
+  return open * uMaxGap * 1.3 * (1.0 + 2.4 * reach * reach);
+}
+
+// Streaks of air rushing out from the wake to both sides, brightest at their
+// heads; uWave holds how far they have travelled and how strong they are.
+float airRush(float s, float d, float side) {
+  if (uWave.y <= 0.0) {
+    return 0.0;
+  }
+  float lane = smoothstep(0.72, 0.95, vnoise(vec2(s * 0.22, side * 3.0)));
+  float head = abs(d) - uWave.x * (0.55 + 0.7 * vnoise(vec2(s * 0.015, side * 7.0)));
+  float tail = smoothstep(-170.0, 0.0, head) * exp(-max(head, 0.0) * max(head, 0.0) / 40.0);
+  return lane * tail * tail * uWave.y * 0.6;
 }
 
 // The painted cloud bank laid along a torn edge, its billowing top toward the
@@ -165,7 +184,7 @@ void main() {
   float d = dot(offset, across);
   float side = d < 0.0 ? -1.0 : 1.0;
   float open = openAt(s);
-  float gap = open * uMaxGap * 1.3;
+  float gap = gapAt(s, open);
   float ragged = open > 0.0
       ? (fbm(vec2(s * 0.03, side * 5.0)) - 0.5) * 24.0 * min(1.0, open * 5.0)
       : 0.0;
@@ -185,8 +204,8 @@ void main() {
     result = vec4(contrail(color, source), 1.0);
   }
   float beam = uBeam * 0.6 * exp(-max(0.0, abs(d) - gap * 0.1) / (gap * 0.35 + 18.0));
-  float ring = uWave.y * exp(-pow((length(offset) - uWave.x) / 22.0, 2.0));
-  vec3 glow = sunColor() * beam * 0.95 + vec3(ring * 0.5);
-  float alpha = max(result.a, clamp(max(beam, ring), 0.0, 1.0));
+  float rush = airRush(s, d, side) * (1.0 - smoothstep(-10.0, 50.0, fromEdge));
+  vec3 glow = sunColor() * beam * 0.95 + vec3(rush * 0.85);
+  float alpha = max(result.a, clamp(max(beam, rush), 0.0, 1.0));
   fragColor = vec4(min(result.rgb + glow, vec3(alpha)), alpha);
 }
