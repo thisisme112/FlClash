@@ -12,11 +12,11 @@ const _landDuration = Duration(milliseconds: 1000);
 const _ignite = Interval(0, 0.1, curve: Curves.easeOut);
 const _flight = Interval(0.05, 0.5, curve: Curves.easeInCubic);
 const _push = Interval(0.05, 0.7, curve: Curves.easeInOut);
-const _parting = Interval(0.4, 1);
-const _beam = Interval(0.4, 0.85, curve: Curves.easeOut);
-const _wave = Interval(0.4, 0.9, curve: Curves.easeOutCubic);
-const _blowOut = Interval(0.36, 0.8, curve: Curves.easeInQuad);
-const _blowFade = Interval(0.5, 0.8);
+const _parting = Interval(0.45, 1);
+const _beam = Interval(0.2, 0.8, curve: Curves.easeOut);
+const _wave = Interval(0.25, 0.85, curve: Curves.easeOutCubic);
+const _blowOut = Interval(0.18, 0.72, curve: Curves.easeInQuad);
+const _blowFade = Interval(0.42, 0.75);
 const _settle = Interval(0.45, 1, curve: Curves.easeOutCubic);
 const _revealZoom = 0.03;
 const _cameraPush = 0.06;
@@ -25,9 +25,9 @@ const _farScale = 0.7;
 const _initialPitch = 0.45;
 const _rocketToPad = 1.95;
 const _maxSkyScale = 2.0;
-const _rollRadius = 0.06;
+const _rollRadius = 0.035;
 // launch_cover.frag thickens each roll by this much per pixel it travels.
-const _rollGrowth = 0.07;
+const _rollGrowth = 0.03;
 
 /// Keeps [child] under a painted sky with only a rocket on its pad until
 /// [launched]. The rocket then arcs up toward the start side, the sky tears
@@ -823,6 +823,7 @@ class _LaunchPainter extends CustomPainter {
       flight.halfSpan,
       flight.maxGap,
       _parting.transform(progress),
+      flight.flown > 0 ? _dot(flight.head - flight.seam, flight.along) : -1e6,
       flight.band,
       flight.radius,
       rest.dx,

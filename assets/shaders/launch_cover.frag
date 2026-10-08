@@ -11,6 +11,7 @@ uniform vec2 uAlong;
 uniform float uHalfSpan;
 uniform float uMaxGap;
 uniform float uParting;
+uniform float uRocketS;
 uniform float uBand;
 uniform float uRadius;
 uniform vec2 uTrailA;
@@ -72,20 +73,25 @@ vec3 cloudTone(float lit) {
   return mix(tone, light, smoothstep(0.72, 1.0, lit));
 }
 
-// How far the sky has torn at s along the wake, 0 to about 1. The tear outruns
-// the screen almost at once, so no pointed ends are seen closing it in.
+// How far the sky has torn at s along the wake, 0 to 1. It unzips behind the
+// rocket as it climbs, wider the further the rocket has gone past, and opens
+// the rest of the way once the rocket is away.
 float openAt(float s) {
-  float front = uHalfSpan * (0.6 + 8.0 * uParting);
-  float x = s / front;
-  float width = uParting * uParting * (3.0 - 2.0 * uParting);
-  return width * sqrt(max(0.0, 1.0 - x * x));
+  float behind = (uRocketS - s) / (uHalfSpan * 0.8);
+  if (behind <= 0.0) {
+    return 0.0;
+  }
+  float trail = clamp(behind, 0.0, 1.0);
+  float wake = trail * trail * (3.0 - 2.0 * trail) * 0.45;
+  float finish = uParting * uParting * (3.0 - 2.0 * uParting);
+  return max(wake, finish);
 }
 
 // Where each half's rolling edge has got to, measured out from the wake. The
 // ends roll faster, so the rolls curve away from the gap, ")(".
 float rollFront(float s, float open) {
   float reach = min(abs(s) / uHalfSpan, 1.0);
-  return open * uMaxGap * (1.0 + 1.6 * reach * reach);
+  return open * uMaxGap * (1.0 + 0.8 * reach * reach);
 }
 
 // Streaks of air rushing out from the wake to both sides, brightest at their
@@ -218,7 +224,7 @@ void main() {
     // viewer and travels outward, thickening as it gathers the sheet. A point
     // on the tube at angle a sits over x = front - radius * sin(a) and came
     // from front - radius * a on the flat sheet.
-    float radius = uRadius + front * 0.07;
+    float radius = uRadius + front * 0.03;
     float ragged = (fbm(vec2(s * 0.03, side * 5.0)) - 0.5) * 24.0 * min(1.0, open * 5.0);
     float sheet = -1e6;
     float facing = 0.0;
