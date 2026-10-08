@@ -22,6 +22,7 @@ export 'grid.dart';
 export 'icon.dart';
 export 'boot_text.dart';
 export 'ignition.dart';
+export 'rocket_launch.dart';
 export 'inherited.dart';
 export 'input.dart';
 export 'keep_scope.dart';

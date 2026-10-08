@@ -258,6 +258,12 @@ class NavigationDock extends StatelessWidget {
   static double insetOf(BuildContext context) =>
       heightOf(context) + _bottomMarginOf(context);
 
+  /// How far the trailing button's center sits from the bottom-end corner.
+  static Offset trailingCenterInsetOf(BuildContext context) {
+    final radius = heightOf(context) / 2;
+    return Offset(_edgeMargin + radius, _bottomMarginOf(context) + radius);
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = heightOf(context);

@@ -703,6 +703,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "iconStyleHidden": MessageLookupByLibrary.simpleMessage("Hidden"),
     "iconStylePlain": MessageLookupByLibrary.simpleMessage("Plain"),
     "iconUrl": MessageLookupByLibrary.simpleMessage("Icon URL"),
+    "ignition": MessageLookupByLibrary.simpleMessage("Ignition"),
     "ignoreBatteryOptimization": MessageLookupByLibrary.simpleMessage(
       "Ignore battery optimization",
     ),
@@ -823,11 +824,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("Language"),
     "large": MessageLookupByLibrary.simpleMessage("Large"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("Last updated"),
+    "launchEffect": MessageLookupByLibrary.simpleMessage("Start effect"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage(
       "Launch did not finish",
     ),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "The app exited unexpectedly while it was starting up last time. Automatic setup was skipped for this launch; you can start it manually to retry.",
+    ),
+    "launchPeek": MessageLookupByLibrary.simpleMessage(
+      "Look around without starting",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Layout"),
     "light": MessageLookupByLibrary.simpleMessage("Light"),
@@ -1163,6 +1168,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Restore successful",
     ),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "rocket": MessageLookupByLibrary.simpleMessage("Rocket"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Route addresses"),
     "routeMode": MessageLookupByLibrary.simpleMessage("Route mode"),
     "routeModeBypassPrivate": MessageLookupByLibrary.simpleMessage(

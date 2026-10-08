@@ -356,6 +356,9 @@ _ThemeProps _$ThemePropsFromJson(Map<String, dynamic> json) => _ThemeProps(
   textScale: json['textScale'] == null
       ? const TextScale()
       : TextScale.fromJson(json['textScale'] as Map<String, dynamic>),
+  launchEffect:
+      $enumDecodeNullable(_$LaunchEffectEnumMap, json['launchEffect']) ??
+      LaunchEffect.ignition,
 );
 
 Map<String, dynamic> _$ThemePropsToJson(_ThemeProps instance) =>
@@ -367,6 +370,7 @@ Map<String, dynamic> _$ThemePropsToJson(_ThemeProps instance) =>
       'pureBlack': instance.pureBlack,
       'sidebarBlur': instance.sidebarBlur,
       'textScale': instance.textScale,
+      'launchEffect': _$LaunchEffectEnumMap[instance.launchEffect]!,
     };
 
 const _$ThemeModeEnumMap = {
@@ -385,6 +389,11 @@ const _$DynamicSchemeVariantEnumMap = {
   DynamicSchemeVariant.content: 'content',
   DynamicSchemeVariant.rainbow: 'rainbow',
   DynamicSchemeVariant.fruitSalad: 'fruitSalad',
+};
+
+const _$LaunchEffectEnumMap = {
+  LaunchEffect.ignition: 'ignition',
+  LaunchEffect.rocket: 'rocket',
 };
 
 _Config _$ConfigFromJson(Map<String, dynamic> json) => _Config(

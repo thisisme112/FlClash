@@ -323,6 +323,7 @@ abstract class ThemeProps with _$ThemeProps {
     @Default(false) bool pureBlack,
     @Default(true) bool sidebarBlur,
     @Default(TextScale()) TextScale textScale,
+    @Default(LaunchEffect.ignition) LaunchEffect launchEffect,
   }) = _ThemeProps;
 
   factory ThemeProps.fromJson(Map<String, Object?> json) =>

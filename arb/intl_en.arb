@@ -777,5 +777,9 @@
   "large": "Large",
   "extraLarge": "Extra large",
   "switchProfile": "Switch profile",
-  "lastUpdated": "Last updated"
+  "lastUpdated": "Last updated",
+  "launchEffect": "Start effect",
+  "ignition": "Ignition",
+  "rocket": "Rocket",
+  "launchPeek": "Look around without starting"
 }

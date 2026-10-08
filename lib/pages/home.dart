@@ -79,86 +79,102 @@ class _HomeShell extends ConsumerWidget {
       profilesProvider.select((profiles) => profiles.isNotEmpty),
     );
     final isStart = ref.watch(isStartProvider);
+    final rocket = ref.watch(
+      themeSettingProvider.select(
+        (state) => state.launchEffect == LaunchEffect.rocket,
+      ),
+    );
+    final appLocalizations = context.appLocalizations;
     return Material(
       color: context.colorScheme.surface,
-      child: Column(
-        children: [
-          Expanded(
-            child: Ignition(
-              active: !isMobile || isStart,
-              origin: _startButtonOrigin,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: FocusTraversalGroup(
-                      policy: PageTraversalPolicy(),
-                      child: BottomInsetScope(
-                        inset: isMobile && floating
-                            ? NavigationDock.insetOf(context)
-                            : 0,
-                        child: _BodyPadding(isMobile: isMobile, child: child),
-                      ),
-                    ),
-                  ),
-                  PositionedDirectional(
-                    start: 0,
-                    end: 0,
-                    bottom: 0,
-                    child: AnimatedVisibility.bottomNavigation(
-                      visible: isMobile && floating,
-                      child: _NavigationPadding(
-                        child: NavigationDock(
-                          destinations: [
-                            for (final item in navigationItems)
-                              NavigationDockDestination(
-                                glyph: item.glyph,
-                                label: item.label.label,
-                              ),
-                          ],
-                          selectedIndex: state.currentIndex,
-                          onSelected: (index) {
-                            _handleToPage(navigationItems[index].label, ref);
-                          },
-                          trailing: switch (pageLabel) {
-                            PageLabel.proxies => const ProxiesDelayTestButton(),
-                            PageLabel.dashboard when hasProfile => _StartButton(
-                              isStart: isStart,
-                              onPressed: ref
-                                  .read(commonActionProvider.notifier)
-                                  .toggleRunning,
-                            ),
-                            _ => null,
-                          },
+      child: RocketLaunch(
+        launched: !rocket || !isMobile || !hasProfile || isStart,
+        onLaunch: ref.read(commonActionProvider.notifier).toggleRunning,
+        restInset: NavigationDock.trailingCenterInsetOf(context),
+        padRadius: NavigationDock.heightOf(context) / 2,
+        label: appLocalizations.start,
+        peekLabel: appLocalizations.launchPeek,
+        child: Column(
+          children: [
+            Expanded(
+              child: Ignition(
+                active: rocket || !isMobile || isStart,
+                origin: _startButtonOrigin,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: FocusTraversalGroup(
+                        policy: PageTraversalPolicy(),
+                        child: BottomInsetScope(
+                          inset: isMobile && floating
+                              ? NavigationDock.insetOf(context)
+                              : 0,
+                          child: _BodyPadding(isMobile: isMobile, child: child),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedVisibility.bottomNavigation(
-            visible: isMobile && !floating,
-            child: _NavigationPadding(
-              child: NavigationBar(
-                destinations: [
-                  for (final (index, item) in navigationItems.indexed)
-                    NavigationDestination(
-                      icon: AnimatedGlyph(
-                        glyph: item.glyph,
-                        filled: index == state.currentIndex,
+                    PositionedDirectional(
+                      start: 0,
+                      end: 0,
+                      bottom: 0,
+                      child: AnimatedVisibility.bottomNavigation(
+                        visible: isMobile && floating,
+                        child: _NavigationPadding(
+                          child: NavigationDock(
+                            destinations: [
+                              for (final item in navigationItems)
+                                NavigationDockDestination(
+                                  glyph: item.glyph,
+                                  label: item.label.label,
+                                ),
+                            ],
+                            selectedIndex: state.currentIndex,
+                            onSelected: (index) {
+                              _handleToPage(navigationItems[index].label, ref);
+                            },
+                            trailing: switch (pageLabel) {
+                              PageLabel.proxies =>
+                                const ProxiesDelayTestButton(),
+                              PageLabel.dashboard when hasProfile =>
+                                _StartButton(
+                                  isStart: isStart,
+                                  onPressed: ref
+                                      .read(commonActionProvider.notifier)
+                                      .toggleRunning,
+                                ),
+                              _ => null,
+                            },
+                          ),
+                        ),
                       ),
-                      label: item.label.label,
                     ),
-                ],
-                selectedIndex: state.currentIndex,
-                onDestinationSelected: (index) {
-                  _handleToPage(navigationItems[index].label, ref);
-                },
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+            AnimatedVisibility.bottomNavigation(
+              visible: isMobile && !floating,
+              child: _NavigationPadding(
+                child: NavigationBar(
+                  destinations: [
+                    for (final (index, item) in navigationItems.indexed)
+                      NavigationDestination(
+                        icon: AnimatedGlyph(
+                          glyph: item.glyph,
+                          filled: index == state.currentIndex,
+                        ),
+                        label: item.label.label,
+                      ),
+                  ],
+                  selectedIndex: state.currentIndex,
+                  onDestinationSelected: (index) {
+                    _handleToPage(navigationItems[index].label, ref);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

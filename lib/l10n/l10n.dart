@@ -6447,6 +6447,36 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Start effect`
+  String get launchEffect {
+    return Intl.message(
+      'Start effect',
+      name: 'launchEffect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ignition`
+  String get ignition {
+    return Intl.message('Ignition', name: 'ignition', desc: '', args: []);
+  }
+
+  /// `Rocket`
+  String get rocket {
+    return Intl.message('Rocket', name: 'rocket', desc: '', args: []);
+  }
+
+  /// `Look around without starting`
+  String get launchPeek {
+    return Intl.message(
+      'Look around without starting',
+      name: 'launchPeek',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
