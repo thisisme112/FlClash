@@ -124,6 +124,9 @@ flutter:
     - family: Twemoji
       fonts:
         - asset: assets/fonts/Twemoji.Mozilla.ttf
+  shaders:
+    - assets/shaders/launch_sky.frag
+    - assets/shaders/launch_cover.frag
 flutter_intl:
   enabled: true
   class_name: AppLocalizations
