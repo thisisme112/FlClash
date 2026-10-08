@@ -126,7 +126,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final elapsed in [1500, 2200]) {
+  for (final elapsed in [2400, 3500]) {
     testWidgets('can stop and relaunch during the cloud wake at ${elapsed}ms', (
       tester,
     ) async {
@@ -157,7 +157,7 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 150)),
     );
     await tester.pumpWidget(_host(launched: true));
-    await tester.pump(const Duration(milliseconds: 1700));
+    await tester.pump(const Duration(milliseconds: 2600));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),

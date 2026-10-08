@@ -7,11 +7,13 @@ import 'package:material_ui/material_ui.dart';
 
 import 'navigation_dock.dart';
 
-const _launchDuration = Duration(milliseconds: 2800);
+const _launchDuration = Duration(milliseconds: 4200);
 const _landDuration = Duration(milliseconds: 900);
 const _ignite = Interval(0, 0.14, curve: Curves.easeOut);
-const _flight = Interval(0.1, 0.72, curve: Curves.easeInQuad);
-const _reveal = Interval(0.65, 1, curve: Curves.easeInOutCubic);
+const _flight = Interval(0.08, 0.74);
+const _cloudCrossing = 0.68;
+const _initialPitch = 0.12;
+const _reveal = Interval(0.74, 1, curve: Curves.easeInOutCubic);
 const _settle = Interval(0.5, 1, curve: Curves.easeOutCubic);
 const _revealZoom = 0.025;
 const _farScale = 0.7;
@@ -316,8 +318,11 @@ class _RocketLaunchState extends State<RocketLaunch>
 
 /// Mostly upward, toward the start side, through the middle cloud bank.
 Offset _courseOf(TextDirection direction) =>
-    Offset(direction == TextDirection.rtl ? 0.38 : -0.38, -1) /
-    math.sqrt(1 + 0.38 * 0.38);
+    Offset(
+      direction == TextDirection.rtl ? _initialPitch : -_initialPitch,
+      -1,
+    ) /
+    math.sqrt(1 + _initialPitch * _initialPitch);
 
 /// Turns a rocket drawn nose-up to face [direction].
 double _headingOf(Offset direction) => direction.direction + math.pi / 2;
@@ -648,26 +653,37 @@ const _noonSky = [Color(0xFF0B3A9E), Color(0xFF5FB6F2), Color(0xFFD4F1FF)];
 const _duskSky = [Color(0xFF141A4E), Color(0xFFB0628F), Color(0xFFFFAA72)];
 
 class _LaunchScene {
-  _LaunchScene(
-    Size size,
-    Offset rest,
-    Offset course,
-    double length,
-    double progress,
-  ) {
-    final toSide = course.dx < 0 ? rest.dx : size.width - rest.dx;
-    final exit = math.min(toSide / course.dx.abs(), rest.dy / course.dy.abs());
-    final distance = exit + length * 1.8;
-    flown = _flight.transform(progress);
-    head = rest + course * distance * flown;
-    impact = rest + course * distance * 0.52;
-    pressure = ((flown - 0.42) / 0.5).clamp(0.0, 1.0);
+  _LaunchScene(Offset rest, Offset course, double length, double progress) {
+    rise = rest.dy + length * 1.8;
+    bend = const Offset(_initialPitch, 0.26) * rise * course.dx.sign;
+    flight = _flight.transform(progress);
+    flown = flight * flight;
+    head = rest + _position(flight);
+    impact = rest + _position(_cloudCrossing);
+    final tangent = _tangent(_cloudCrossing);
+    along = tangent / tangent.distance;
+    heading = _headingOf(_tangent(flight));
+    final crossing =
+        _flight.begin + (_flight.end - _flight.begin) * _cloudCrossing;
+    pressure = ((progress - crossing) / (1 - crossing)).clamp(0.0, 1.0);
     reveal = _reveal.transform(progress);
   }
 
+  // Constant net vertical acceleration, with a gradual pitch-over under thrust.
+  // These coefficients also locate the exhaust in launch_cover.frag.
+  Offset _position(double t) =>
+      Offset((bend.dx + bend.dy * t) * t * t, -rise * t * t);
+
+  Offset _tangent(double t) => Offset(bend.dx + 1.5 * bend.dy * t, -rise);
+
+  late final double rise;
+  late final Offset bend;
+  late final double flight;
   late final double flown;
   late final Offset head;
   late final Offset impact;
+  late final Offset along;
+  late final double heading;
   late final double pressure;
   late final double reveal;
 }
@@ -702,7 +718,7 @@ class _LaunchPainter extends CustomPainter {
     if (size.isEmpty) {
       return;
     }
-    final scene = _LaunchScene(size, rest, course, _rocketLength, progress);
+    final scene = _LaunchScene(rest, course, _rocketLength, progress);
     final sky = this.sky;
     final cover = this.cover;
     final clouds = this.clouds;
@@ -755,8 +771,8 @@ class _LaunchPainter extends CustomPainter {
       dusk ? 1.0 : 0.0,
       rest.dx,
       rest.dy,
-      course.dx,
-      course.dy,
+      scene.along.dx,
+      scene.along.dy,
       scene.head.dx,
       scene.head.dy,
       scene.impact.dx,
@@ -768,6 +784,10 @@ class _LaunchPainter extends CustomPainter {
       scene.reveal,
       foreground ? 1.0 : 0.0,
       cloudBank == null ? 0.0 : 1.0,
+      scene.bend.dx,
+      scene.bend.dy,
+      scene.rise,
+      scene.flight,
     ];
     for (final (index, value) in uniforms.indexed) {
       shader.setFloat(index, value);
@@ -784,7 +804,7 @@ class _LaunchPainter extends CustomPainter {
     }
     final launch = _ignite.transform(progress);
     final length = _rocketLength * (1 - (1 - _farScale) * flown);
-    final heading = _headingOf(course);
+    final heading = scene.heading;
     if (scene.pressure > 0 && flown < 0.95) {
       _paintCompression(canvas, scene, length, heading);
     }
