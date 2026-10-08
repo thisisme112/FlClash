@@ -249,120 +249,160 @@ class RocketIcon extends StatelessWidget {
 class _Sky {
   const _Sky({
     required this.top,
-    required this.bottom,
-    required this.cloud,
-    required this.shade,
-    required this.smokeShade,
+    required this.mid,
+    required this.low,
+    required this.deep,
+    required this.shadow,
+    required this.body,
+    required this.light,
+    required this.rim,
     required this.sun,
   });
 
   static const day = _Sky(
-    top: Color(0xFF2C7BE5),
-    bottom: Color(0xFFA8D5FF),
-    cloud: Color(0xFFFFFFFF),
-    shade: Color(0xFFCFE0F2),
-    smokeShade: Color(0xFFD3DEEA),
-    sun: Color(0xFFFFE29A),
+    top: Color(0xFF1546B5),
+    mid: Color(0xFF3A87EC),
+    low: Color(0xFFA6DCF8),
+    deep: Color(0xFF8193D2),
+    shadow: Color(0xFFA7B8E6),
+    body: Color(0xFFE4ECFB),
+    light: Color(0xFFFFFFFF),
+    rim: Color(0xFFFFE3A3),
+    sun: Color(0xFFFFF4D6),
   );
 
   static const dusk = _Sky(
-    top: Color(0xFF0E2F66),
-    bottom: Color(0xFF4479BF),
-    cloud: Color(0xFFE6EEF8),
-    shade: Color(0xFF9DB3CF),
-    smokeShade: Color(0xFFA7B9CE),
-    sun: Color(0xFFFFD98A),
+    top: Color(0xFF0B1E52),
+    mid: Color(0xFF24509E),
+    low: Color(0xFF7393CE),
+    deep: Color(0xFF55609A),
+    shadow: Color(0xFF6C79AE),
+    body: Color(0xFFC9D2EC),
+    light: Color(0xFFF2F4FB),
+    rim: Color(0xFFFFC98A),
+    sun: Color(0xFFFFE0B0),
   );
 
   static _Sky of(Brightness brightness) =>
       brightness == Brightness.dark ? dusk : day;
 
   final Color top;
-  final Color bottom;
-  final Color cloud;
-  final Color shade;
-  final Color smokeShade;
+  final Color mid;
+  final Color low;
+  final Color deep;
+  final Color shadow;
+  final Color body;
+  final Color light;
+  final Color rim;
   final Color sun;
 }
 
-const _hull = [
-  Color(0xFF8E9BAD),
-  Color(0xFFDCE3EC),
-  Color(0xFFFFFFFF),
-  Color(0xFFE4E9F0),
-  Color(0xFF9AA6B7),
-];
-const _livery = [
-  Color(0xFF9E2620),
-  Color(0xFFE2463C),
-  Color(0xFFFF7B6F),
-  Color(0xFFE0453B),
-  Color(0xFF962520),
-];
-const _finLit = [Color(0xFFF25A4F), Color(0xFFC9362E)];
-const _finShade = [Color(0xFFC43A31), Color(0xFF8F231D)];
-const _metal = [Color(0xFF4F5967), Color(0xFFB3BDCA), Color(0xFF5E6876)];
-const _glass = [Color(0xFFD6EEFF), Color(0xFF4A8FE0), Color(0xFF1B4A8E)];
-const _glint = Color(0xD9FFFFFF);
-const _panelLine = Color(0x2E0F2440);
-const _padRing = Color(0xCCFFFFFF);
-const _padFill = Color(0x33FFFFFF);
+const _ink = Color(0xFF1A2340);
+const _hull = Color(0xFFEEF3FA);
+const _hullLit = Color(0xFFFFFFFF);
+const _hullShade = Color(0xFFAFC0DD);
+const _hullDeep = Color(0xFF8597BE);
+const _red = Color(0xFFE8414A);
+const _redShade = Color(0xFFA8233A);
+const _redLit = Color(0xFFFF9A96);
+const _metal = Color(0xFF8C9AB6);
+const _metalShade = Color(0xFF56627E);
+const _frame = Color(0xFFDCE4F0);
+const _frameShade = Color(0xFF8D9CBB);
+const _glass = Color(0xFF1E3F8E);
+const _glassGlow = Color(0xFF2F64C8);
+const _glint = Color(0xFFFFFFFF);
+const _flameOuter = Color(0xFFFF6A2B);
+const _flameMid = Color(0xFFFFC23D);
+const _flameCore = Color(0xFFFFF8DC);
+const _spark = Color(0xFFFFC85A);
+const _white = Color(0xFFFFFFFF);
 
-/// Clouds parked in the idle sky: where, as fractions of the screen, and how
-/// big, as a fraction of the screen's width.
-const _skyClouds = [
-  (0.26, 0.13, 0.46),
-  (0.8, 0.27, 0.33),
-  (0.3, 0.46, 0.28),
-  (0.74, 0.6, 0.4),
-  (0.2, 0.75, 0.31),
+/// Where the sun sits, so every cel band is cut on the same side.
+const _light = Offset(0.62, -0.78);
+
+/// The idle sky's sparkles: where, as fractions of the screen, and how big.
+const _sparkles = [
+  (0.36, 0.1, 5.0),
+  (0.55, 0.24, 3.5),
+  (0.12, 0.42, 4.0),
+  (0.48, 0.52, 3.0),
+  (0.9, 0.42, 4.5),
 ];
 
-/// One cloud's puffs, relative to its width.
-const _cloudPuffs = [
-  (-0.34, 0.07, 0.19),
-  (-0.15, -0.05, 0.26),
-  (0.09, -0.12, 0.31),
-  (0.31, 0.0, 0.22),
-  (0.02, 0.08, 0.23),
-  (-0.2, 0.11, 0.17),
-  (0.2, 0.11, 0.18),
+/// The idle sky's clouds as puffs: where, as fractions of the screen, and how
+/// big, as a fraction of its width. A towering bank rises along the foot.
+final _skyPuffs = [
+  for (var index = 0; index < 11; index++)
+    (
+      -0.08 + index * 0.12,
+      0.97 - 0.03 * _scatter(index, 0.2),
+      0.15 + 0.08 * _scatter(index, 0.5),
+    ),
+  (0.1, 0.86, 0.17),
+  (0.24, 0.84, 0.14),
+  (0.06, 0.77, 0.14),
+  (0.19, 0.74, 0.12),
+  (0.11, 0.68, 0.1),
+  (0.22, 0.66, 0.08),
+  (0.15, 0.62, 0.07),
+  (0.4, 0.9, 0.12),
+  (0.6, 0.91, 0.11),
+  (0.92, 0.86, 0.13),
+  (0.62, 0.36, 0.07),
+  (0.7, 0.33, 0.09),
+  (0.79, 0.35, 0.065),
+  (0.7, 0.37, 0.06),
+  (0.18, 0.2, 0.05),
+  (0.25, 0.185, 0.065),
+  (0.32, 0.2, 0.05),
+  (0.86, 0.56, 0.05),
+  (0.92, 0.545, 0.06),
+  (0.97, 0.56, 0.045),
 ];
 
 /// A fixed scatter in [0, 1): the same picture every time, with no Random.
 double _scatter(int index, double seed) => (index * 0.618034 + seed) % 1;
 
-/// A horizontal gradient spread evenly over [colors], for shading a round
-/// part lit from one side.
-Paint _across(double from, double to, List<Color> colors) => Paint()
-  ..shader = ui.Gradient.linear(Offset(from, 0), Offset(to, 0), colors, [
-    for (var index = 0; index < colors.length; index++)
-      index / (colors.length - 1),
-  ]);
+typedef _Puff = ({Offset center, double radius, double alpha});
 
-/// A white puff lit from above: a cool shadow under it, the bright body on top.
-void _paintPuff(
-  Canvas canvas,
-  Offset center,
-  double radius,
-  Color body,
-  Color shade, [
-  double alpha = 1,
-]) {
-  if (alpha <= 0 || radius <= 0) {
-    return;
+/// A cel-shaded cloud: every puff's band is laid down before the next band,
+/// so overlapping puffs merge into one mass with hard-edged tones.
+void _paintCumulus(Canvas canvas, List<_Puff> puffs, _Sky sky) {
+  final paint = Paint();
+  void band(Color color, double shift, double scale) {
+    for (final puff in puffs) {
+      if (puff.alpha <= 0 || puff.radius <= 0) {
+        continue;
+      }
+      paint.color = color.withValues(alpha: puff.alpha);
+      canvas.drawCircle(
+        puff.center + _light * (puff.radius * shift),
+        puff.radius * scale,
+        paint,
+      );
+    }
   }
-  canvas
-    ..drawCircle(
-      center + Offset(0, radius * 0.22),
-      radius,
-      Paint()..color = shade.withValues(alpha: alpha),
-    )
-    ..drawCircle(
-      center,
-      radius * 0.96,
-      Paint()..color = body.withValues(alpha: alpha),
-    );
+
+  band(sky.deep, -0.1, 0.98);
+  band(sky.shadow, 0, 0.97);
+  band(sky.body, 0.11, 0.9);
+  band(sky.light, 0.3, 0.6);
+}
+
+void _paintSparkle(Canvas canvas, Offset center, double radius, double alpha) {
+  final star = Path();
+  for (var index = 0; index < 8; index++) {
+    final reach = index.isEven ? radius : radius * 0.18;
+    final point = center + Offset.fromDirection(index * math.pi / 4, reach);
+    index == 0
+        ? star.moveTo(point.dx, point.dy)
+        : star.lineTo(point.dx, point.dy);
+  }
+  canvas.drawPath(
+    star..close(),
+    Paint()..color = _white.withValues(alpha: alpha),
+  );
 }
 
 void _paintPad(
@@ -379,17 +419,28 @@ void _paintPad(
   canvas
     ..drawCircle(
       center,
-      reach,
-      Paint()..color = _padFill.withValues(alpha: _padFill.a * fade),
+      reach * 1.15,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          center,
+          reach * 1.15,
+          [
+            _white.withValues(alpha: 0),
+            _white.withValues(alpha: 0.35 * fade),
+            _white.withValues(alpha: 0),
+          ],
+          const [0.48, 0.84, 1],
+        ),
     )
     ..drawCircle(
       center,
-      reach - 1,
+      reach - 1.5,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = _padRing.withValues(alpha: _padRing.a * fade),
+        ..color = _white.withValues(alpha: 0.9 * fade),
     );
+  _paintSparkle(canvas, center + Offset(reach * 0.72, -reach * 0.72), 5, fade);
 }
 
 void _paintFlame(
@@ -398,78 +449,70 @@ void _paintFlame(
   double hw,
   double thrust,
   double flicker,
+  double time,
 ) {
   final nozzle = l * 0.34;
-  final reach = l * (0.35 + 0.75 * thrust) * flicker;
-  final glow = l * 0.5 * thrust;
+  final reach = l * (0.4 + 0.8 * thrust) * flicker;
+  final glow = l * 0.55 * thrust;
   canvas.drawCircle(
     Offset(0, nozzle),
     glow,
     Paint()
       ..shader = ui.Gradient.radial(Offset(0, nozzle), glow, const [
-        Color(0x8CFFC460),
-        Color(0x00FF9632),
+        Color(0x99FFD678),
+        Color(0x00FF963C),
       ]),
   );
-  void plume(
-    double width,
-    double length,
-    List<Color> colors,
-    List<double> stops,
-  ) {
+  void tongue(double width, double length, Color color, double sway) {
     final w = hw * width;
     canvas.drawPath(
       Path()
         ..moveTo(-w, nozzle)
         ..cubicTo(
-          -w * 1.25,
-          nozzle + length * 0.35,
-          -w * 0.5,
-          nozzle + length * 0.8,
-          0,
+          -w * 1.15,
+          nozzle + length * 0.3,
+          -w * 0.35 + sway,
+          nozzle + length * 0.72,
+          sway,
           nozzle + length,
         )
         ..cubicTo(
-          w * 0.5,
-          nozzle + length * 0.8,
-          w * 1.25,
-          nozzle + length * 0.35,
+          w * 0.35 + sway,
+          nozzle + length * 0.72,
+          w * 1.15,
+          nozzle + length * 0.3,
           w,
           nozzle,
         )
         ..close(),
-      Paint()
-        ..shader = ui.Gradient.linear(
-          Offset(0, nozzle),
-          Offset(0, nozzle + length),
-          colors,
-          stops,
-        ),
+      Paint()..color = color,
     );
   }
 
-  plume(
-    0.95,
-    reach,
-    const [Color(0xFFFFAA46), Color(0xD9FF6E28), Color(0x00FF501E)],
-    const [0, 0.45, 1],
-  );
-  plume(
-    0.62,
-    reach * 0.68,
-    const [Color(0xFFFFF4BE), Color(0xE6FFCD5A), Color(0x00FFAA3C)],
-    const [0, 0.55, 1],
-  );
-  plume(
-    0.32,
-    reach * 0.4,
-    const [Color(0xFFFFFFFF), Color(0x00FFFAE1)],
-    const [0, 1],
-  );
+  final sway = math.sin(time * 220) * hw * 0.12;
+  tongue(1, reach, _flameOuter, sway);
+  tongue(0.5, reach * 0.55, _flameOuter, -hw * 0.75 + sway * 0.5);
+  tongue(0.5, reach * 0.5, _flameOuter, hw * 0.75 - sway * 0.5);
+  tongue(0.7, reach * 0.72, _flameMid, -sway * 0.6);
+  tongue(0.38, reach * 0.42, _flameCore, sway * 0.3);
+  final spark = Paint();
+  for (var index = 0; index < 5; index++) {
+    final age = (_scatter(index, 0.4) + time * 6) % 1;
+    spark.color = _spark.withValues(alpha: (1 - age) * thrust);
+    canvas.drawCircle(
+      Offset(
+        (_scatter(index, 0.9) - 0.5) * hw * 1.6,
+        nozzle + reach * (0.6 + age * 0.9),
+      ),
+      hw * 0.12 * (1 - age),
+      spark,
+    );
+  }
 }
 
-/// A white rocket with a red livery, drawn nose-up around its middle and then
-/// turned to [heading]; [thrust] lights the engine.
+/// A cel-shaded white rocket with a red livery and an inked outline, drawn
+/// nose-up around its middle and turned to [heading]. Its lit side is +x,
+/// which faces the sun once it points up and toward the start side.
 void _paintRocket(
   Canvas canvas, {
   required Offset center,
@@ -477,50 +520,73 @@ void _paintRocket(
   required double heading,
   double thrust = 0,
   double flicker = 1,
+  double time = 0,
 }) {
   final l = length;
   final hw = l * 0.15;
   final base = l * 0.26;
+  final ink = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = l * 0.022
+    ..strokeJoin = StrokeJoin.round
+    ..strokeCap = StrokeCap.round
+    ..color = _ink;
+  void shaded(Path path, Color fill, void Function() bands) {
+    canvas
+      ..drawPath(path, Paint()..color = fill)
+      ..save()
+      ..clipPath(path);
+    bands();
+    canvas
+      ..restore()
+      ..drawPath(path, ink);
+  }
+
   canvas
     ..save()
     ..translate(center.dx, center.dy)
     ..rotate(heading);
   if (thrust > 0) {
-    _paintFlame(canvas, l, hw, thrust, flicker);
+    _paintFlame(canvas, l, hw, thrust, flicker, time);
   }
   for (final side in const [-1.0, 1.0]) {
-    canvas.drawPath(
-      Path()
-        ..moveTo(side * hw * 0.85, -l * 0.02)
-        ..quadraticBezierTo(
-          side * hw * 2.3,
-          l * 0.13,
-          side * hw * 2.2,
-          l * 0.39,
-        )
-        ..lineTo(side * hw * 1.5, l * 0.33)
-        ..quadraticBezierTo(
-          side * hw * 1.05,
-          l * 0.28,
-          side * hw * 0.85,
-          l * 0.27,
-        )
-        ..close(),
-      _across(
+    final fin = Path()
+      ..moveTo(side * hw * 0.85, -l * 0.02)
+      ..quadraticBezierTo(side * hw * 2.3, l * 0.13, side * hw * 2.2, l * 0.39)
+      ..lineTo(side * hw * 1.5, l * 0.33)
+      ..quadraticBezierTo(
+        side * hw * 1.05,
+        l * 0.28,
         side * hw * 0.85,
-        side * hw * 2.3,
-        side < 0 ? _finLit : _finShade,
-      ),
-    );
+        l * 0.27,
+      )
+      ..close();
+    shaded(fin, side > 0 ? _red : _redShade, () {
+      if (side > 0) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(hw * 0.95, 0)
+            ..quadraticBezierTo(hw * 2.18, l * 0.14, hw * 2.08, l * 0.36),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = l * 0.03
+            ..color = _redLit,
+        );
+      }
+    });
   }
-  canvas.drawPath(
+  shaded(
     Path()
       ..moveTo(-hw * 0.6, base - 1)
       ..lineTo(hw * 0.6, base - 1)
       ..lineTo(hw * 0.8, l * 0.35)
       ..lineTo(-hw * 0.8, l * 0.35)
       ..close(),
-    _across(-hw * 0.8, hw * 0.8, _metal),
+    _metal,
+    () => canvas.drawRect(
+      Rect.fromLTWH(-hw, base - 2, hw * 0.75, l * 0.12),
+      Paint()..color = _metalShade,
+    ),
   );
   final body = Path()
     ..moveTo(0, -l * 0.5)
@@ -532,53 +598,100 @@ void _paintRocket(
     ..lineTo(-hw, -l * 0.12)
     ..cubicTo(-hw, -l * 0.3, -hw * 0.62, -l * 0.44, 0, -l * 0.5)
     ..close();
-  final livery = _across(-hw, hw, _livery);
-  canvas
-    ..drawPath(body, _across(-hw, hw, _hull))
-    ..save()
-    ..clipPath(body)
-    ..drawRect(Rect.fromLTWH(-hw, -l * 0.5, hw * 2, l * 0.21), livery)
-    ..drawRect(Rect.fromLTWH(-hw, l * 0.07, hw * 2, l * 0.05), livery)
-    ..drawRect(
-      Rect.fromLTWH(-hw, -l * 0.29, hw * 2, l * 0.008),
-      Paint()..color = _panelLine,
-    )
-    ..restore()
-    ..drawPath(
-      Path()
-        ..moveTo(-hw * 0.17, l * 0.1)
-        ..lineTo(hw * 0.17, l * 0.1)
-        ..lineTo(hw * 0.17, l * 0.38)
-        ..quadraticBezierTo(0, l * 0.43, -hw * 0.17, l * 0.38)
-        ..close(),
-      _across(-hw * 0.17, hw * 0.17, _finShade),
-    );
-  final window = Offset(0, -l * 0.1);
-  canvas
-    ..drawCircle(window, hw * 0.58, _across(-hw * 0.58, hw * 0.58, _metal))
-    ..drawCircle(
-      window,
-      hw * 0.44,
-      Paint()
-        ..shader = ui.Gradient.radial(
-          window,
-          hw * 0.44,
-          _glass,
-          const [0, 0.45, 1],
-          TileMode.clamp,
-          null,
-          window + Offset(-hw * 0.16, -hw * 0.16),
-          hw * 0.02,
+  shaded(body, _hull, () {
+    void livery(double top, double bottom) {
+      canvas
+        ..drawRect(Rect.fromLTRB(-hw, top, hw, bottom), Paint()..color = _red)
+        ..drawRect(
+          Rect.fromLTRB(-hw, top, -hw * 0.22, bottom),
+          Paint()..color = _redShade,
+        );
+    }
+
+    canvas
+      ..drawRect(
+        Rect.fromLTRB(-hw, -l * 0.5, -hw * 0.22, l * 0.5),
+        Paint()..color = _hullShade,
+      )
+      ..drawRect(
+        Rect.fromLTRB(-hw, -l * 0.5, -hw * 0.76, l * 0.5),
+        Paint()..color = _hullDeep,
+      );
+    livery(-l * 0.5, -l * 0.29);
+    livery(l * 0.07, l * 0.12);
+    canvas
+      ..drawOval(
+        Rect.fromCenter(
+          center: Offset(hw * 0.52, -l * 0.08),
+          width: hw * 0.24,
+          height: l * 0.34,
         ),
-    )
-    ..save()
-    ..translate(window.dx - hw * 0.15, window.dy - hw * 0.17)
-    ..rotate(-0.6)
-    ..drawOval(
-      Rect.fromCenter(center: Offset.zero, width: hw * 0.28, height: hw * 0.14),
+        Paint()..color = _hullLit,
+      )
+      ..save()
+      ..translate(hw * 0.38, -l * 0.37)
+      ..rotate(0.25)
+      ..drawOval(
+        Rect.fromCenter(center: Offset.zero, width: hw * 0.2, height: l * 0.12),
+        Paint()..color = _redLit,
+      )
+      ..restore();
+  });
+  shaded(
+    Path()
+      ..moveTo(-hw * 0.17, l * 0.1)
+      ..lineTo(hw * 0.17, l * 0.1)
+      ..lineTo(hw * 0.17, l * 0.38)
+      ..quadraticBezierTo(0, l * 0.43, -hw * 0.17, l * 0.38)
+      ..close(),
+    _red,
+    () => canvas.drawRect(
+      Rect.fromLTWH(-hw * 0.2, l * 0.09, hw * 0.2, l * 0.36),
+      Paint()..color = _redShade,
+    ),
+  );
+  final window = Offset(0, -l * 0.1);
+  final outer = hw * 0.6;
+  final inner = hw * 0.43;
+  shaded(
+    Path()..addOval(Rect.fromCircle(center: window, radius: outer)),
+    _frame,
+    () => canvas.drawRect(
+      Rect.fromLTWH(-outer, window.dy - outer, outer * 0.8, outer * 2),
+      Paint()..color = _frameShade,
+    ),
+  );
+  shaded(
+    Path()..addOval(Rect.fromCircle(center: window, radius: inner)),
+    _glass,
+    () => canvas
+      ..drawCircle(
+        window + Offset(-inner * 0.35, inner * 0.4),
+        inner * 0.75,
+        Paint()..color = _glassGlow,
+      )
+      ..drawCircle(
+        window + Offset(-inner * 0.15, inner * 0.18),
+        inner * 0.72,
+        Paint()..color = _glass,
+      )
+      ..drawArc(
+        Rect.fromCircle(center: window, radius: inner * 0.72),
+        -1.45,
+        1.3,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = inner * 0.28
+          ..color = _glint,
+      ),
+  );
+  canvas
+    ..drawCircle(
+      window + Offset(inner * 0.15, inner * 0.32),
+      inner * 0.11,
       Paint()..color = _glint,
     )
-    ..restore()
     ..restore();
 }
 
@@ -724,14 +837,9 @@ class _LaunchPainter extends CustomPainter {
     }
     final wake = _Wake(size, rest, course, progress);
     final end = _endOf(size);
-    final skyPaint = Paint()
-      ..shader = ui.Gradient.linear(Offset.zero, Offset(0, size.height), [
-        sky.top,
-        sky.bottom,
-      ]);
     _paintBeam(canvas, wake);
     for (final side in const [-1.0, 1.0]) {
-      _paintSkyHalf(canvas, size, wake, skyPaint, side);
+      _paintSkyHalf(canvas, size, wake, side);
     }
     _paintTrail(canvas, wake, end);
     _paintWave(canvas, size, wake);
@@ -771,22 +879,16 @@ class _LaunchPainter extends CustomPainter {
           wake.at(0, -reach),
           wake.at(0, reach),
           [
-            sky.sun.withValues(alpha: 0),
-            sky.sun.withValues(alpha: 0.8 * glow),
-            sky.sun.withValues(alpha: 0),
+            sky.rim.withValues(alpha: 0),
+            sky.sun.withValues(alpha: 0.9 * glow),
+            sky.rim.withValues(alpha: 0),
           ],
           const [0, 0.5, 1],
         ),
     );
   }
 
-  void _paintSkyHalf(
-    Canvas canvas,
-    Size size,
-    _Wake wake,
-    Paint skyPaint,
-    double side,
-  ) {
+  void _paintSkyHalf(Canvas canvas, Size size, _Wake wake, double side) {
     final far = wake.halfSpan * 4;
     final farEnd = wake.at(wake.halfSpan * 2, side * far);
     final farStart = wake.at(-wake.halfSpan * 2, side * far);
@@ -794,21 +896,19 @@ class _LaunchPainter extends CustomPainter {
       ..lineTo(farEnd.dx, farEnd.dy)
       ..lineTo(farStart.dx, farStart.dy)
       ..close();
+    // Everything in the sky is drawn in both halves, each moved with its own
+    // half, so a cloud lying across the wake is torn in two.
+    Offset moved(Offset point) =>
+        point + wake.across * (side * wake.gapAt(wake.distanceOf(point)));
     canvas
-      ..drawPath(half, skyPaint)
       ..save()
       ..clipPath(half);
-    // Every cloud is drawn in both halves, each moved with its own half, so
-    // one lying across the wake is torn in two.
-    for (final (x, y, width) in _skyClouds) {
-      final center = Offset(x * size.width, y * size.height);
-      final shift = side * wake.gapAt(wake.distanceOf(center));
-      _paintSkyCloud(canvas, center + wake.across * shift, width * size.width);
-    }
+    _paintSky(canvas, size, moved);
     canvas.restore();
     if (wake.parting <= 0) {
       return;
     }
+    final billows = <_Puff>[];
     final rim = Paint();
     var index = 0;
     for (final s in wake.stations(_scallopGap)) {
@@ -820,44 +920,82 @@ class _LaunchPainter extends CustomPainter {
       final gap = wake.gapAt(s);
       final shown = math.min(1.0, open * 4);
       final radius = _scallopGap * (0.6 + 0.55 * jitter) * (0.75 + 0.7 * open);
-      _paintPuff(
-        canvas,
-        wake.at(s + _scallopGap * 0.5, side * (gap + radius * 1.25)),
-        radius * 1.3,
-        sky.cloud,
-        sky.shade,
-        shown,
-      );
+      billows.add((
+        center: wake.at(s + _scallopGap * 0.5, side * (gap + radius * 1.25)),
+        radius: radius * 1.3,
+        alpha: shown,
+      ));
       final center = wake.at(s, side * (gap + radius * 0.35));
-      rim.color = sky.sun.withValues(alpha: 0.75 * shown);
-      canvas.drawCircle(center, radius, rim);
-      _paintPuff(
-        canvas,
-        center + wake.across * side * 2.5,
-        radius,
-        sky.cloud,
-        sky.shade,
-        shown,
-      );
+      rim.color = sky.rim.withValues(alpha: 0.9 * shown);
+      canvas.drawCircle(center - wake.across * side * 3, radius, rim);
+      billows.add((center: center, radius: radius, alpha: shown));
     }
+    _paintCumulus(canvas, billows, sky);
   }
 
-  void _paintSkyCloud(Canvas canvas, Offset center, double width) {
-    final shade = Paint()..color = sky.shade;
-    final cloud = Paint()..color = sky.cloud;
-    for (final (x, y, radius) in _cloudPuffs) {
-      canvas.drawCircle(
-        center + Offset(x, y + radius * 0.22) * width,
-        radius * width,
-        shade,
+  void _paintSky(Canvas canvas, Size size, Offset Function(Offset) moved) {
+    final w = size.width;
+    final h = size.height;
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset.zero,
+          Offset(0, h),
+          [sky.top, sky.mid, sky.low],
+          const [0, 0.55, 1],
+        ),
+    );
+    final sun = moved(Offset(w * 0.98, h * 0.02));
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          sun,
+          w * 0.75,
+          [
+            sky.sun.withValues(alpha: 0.95),
+            sky.sun.withValues(alpha: 0.6),
+            sky.sun.withValues(alpha: 0.12),
+            sky.sun.withValues(alpha: 0),
+          ],
+          const [0, 0.12, 0.4, 1],
+        ),
+    );
+    final ray = Paint()..color = sky.sun.withValues(alpha: 0.07);
+    for (var index = 0; index < 7; index++) {
+      final angle = math.pi * 0.55 + index * 0.12 + _scatter(index, 0.3) * 0.05;
+      final spread = 0.025 + 0.02 * _scatter(index, 0.7);
+      final from = sun + Offset.fromDirection(angle - spread, h * 1.4);
+      final to = sun + Offset.fromDirection(angle + spread, h * 1.4);
+      canvas.drawPath(
+        Path()
+          ..moveTo(sun.dx, sun.dy)
+          ..lineTo(from.dx, from.dy)
+          ..lineTo(to.dx, to.dy)
+          ..close(),
+        ray,
       );
     }
-    for (final (x, y, radius) in _cloudPuffs) {
+    final flareAim = Offset(w * 0.35, h * 0.5);
+    for (final (along, radius, alpha) in const [
+      (0.28, 0.05, 0.16),
+      (0.42, 0.025, 0.22),
+      (0.6, 0.09, 0.08),
+      (0.72, 0.03, 0.18),
+    ]) {
       canvas.drawCircle(
-        center + Offset(x, y) * width,
-        radius * width * 0.96,
-        cloud,
+        sun + (flareAim - sun) * (along * 2),
+        w * radius,
+        Paint()..color = _white.withValues(alpha: alpha),
       );
+    }
+    _paintCumulus(canvas, [
+      for (final (x, y, radius) in _skyPuffs)
+        (center: moved(Offset(x * w, y * h)), radius: radius * w, alpha: 1.0),
+    ], sky);
+    for (final (x, y, radius) in _sparkles) {
+      _paintSparkle(canvas, moved(Offset(x * w, y * h)), radius, 0.9);
     }
   }
 
@@ -871,18 +1009,18 @@ class _LaunchPainter extends CustomPainter {
     final restS = wake.distanceOf(rest);
     final pathLength = (end - rest).distance;
     final padOpen = wake.openAt(restS);
-    for (var index = 0; index < _padSmokePuffs; index++) {
-      final side = index.isEven ? 1.0 : -1.0;
-      final reach = (index ~/ 2 + 1) * width * 0.8 * launch;
-      _paintPuff(
-        canvas,
-        wake.at(restS - width, side * (reach + wake.gapAt(restS))),
-        width * (0.7 + 0.6 * launch),
-        sky.cloud,
-        sky.smokeShade,
-        0.95 * (1 - padOpen),
-      );
-    }
+    final smoke = <_Puff>[
+      for (var index = 0; index < _padSmokePuffs; index++)
+        (
+          center: wake.at(
+            restS - width,
+            (index.isEven ? 1 : -1) *
+                ((index ~/ 2 + 1) * width * 0.8 * launch + wake.gapAt(restS)),
+          ),
+          radius: width * (0.7 + 0.6 * launch),
+          alpha: 1 - padOpen,
+        ),
+    ];
     for (var index = 0; index < _trailPuffs; index++) {
       final along = index / _trailPuffs;
       if (flown <= along) {
@@ -899,15 +1037,13 @@ class _LaunchPainter extends CustomPainter {
           perspective *
           (0.8 + 0.4 * _scatter(index, 0.3));
       final drift = width * 0.4 * age * _scatter(index, 0.8);
-      _paintPuff(
-        canvas,
-        wake.at(s, side * (drift + wake.gapAt(s) + open * radius)),
-        radius,
-        sky.cloud,
-        sky.smokeShade,
-        0.95 * (1 - open),
-      );
+      smoke.add((
+        center: wake.at(s, side * (drift + wake.gapAt(s) + open * radius)),
+        radius: radius,
+        alpha: 1 - open,
+      ));
     }
+    _paintCumulus(canvas, smoke, sky);
   }
 
   void _paintWave(Canvas canvas, Size size, _Wake wake) {
@@ -915,14 +1051,23 @@ class _LaunchPainter extends CustomPainter {
       return;
     }
     final wave = _wave.transform(progress);
-    canvas.drawCircle(
-      wake.center,
-      wave * size.longestSide * 0.75,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 + 16 * (1 - wave)
-        ..color = sky.cloud.withValues(alpha: 0.5 * (1 - wave)),
-    );
+    for (final (lag, width, alpha) in const [
+      (0.0, 14.0, 0.55),
+      (0.12, 4.0, 0.8),
+    ]) {
+      final reach = (wave - lag).clamp(0.0, 1.0);
+      if (reach <= 0) {
+        continue;
+      }
+      canvas.drawCircle(
+        wake.center,
+        reach * size.longestSide * 0.75,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5 + width * (1 - reach)
+          ..color = _white.withValues(alpha: alpha * (1 - reach)),
+      );
+    }
   }
 
   void _paintFlyingRocket(Canvas canvas, _Wake wake, Offset end) {
@@ -931,16 +1076,35 @@ class _LaunchPainter extends CustomPainter {
       return;
     }
     final launch = _ignite.transform(progress);
+    final length = _rocketLength * (1 - (1 - _farScale) * flown);
+    final position = Offset.lerp(rest, end, flown)!;
+    final rush =
+        (flown * 6).clamp(0.0, 1.0) * ((1 - flown) * 4).clamp(0.0, 1.0);
+    if (rush > 0) {
+      final line = Paint()
+        ..strokeCap = StrokeCap.round
+        ..color = _white.withValues(alpha: 0.75 * rush);
+      for (var index = 0; index < 9; index++) {
+        final start =
+            position -
+            course * (length * (0.5 + _scatter(index, 0.45) * 1.2)) +
+            wake.across * ((_scatter(index, 0.15) - 0.5) * length * 1.8);
+        final reach = length * (1.4 + 2.6 * _scatter(index, 0.75)) * rush;
+        line.strokeWidth = 1 + _scatter(index, 0.33) * 1.5;
+        canvas.drawLine(start, start - course * reach, line);
+      }
+    }
     final settling = (1 - flown * 50).clamp(0.0, 1.0);
     final shake =
         wake.across * math.sin(progress * 900) * _shake * launch * settling;
     _paintRocket(
       canvas,
-      center: Offset.lerp(rest, end, flown)! + shake,
-      length: _rocketLength * (1 - (1 - _farScale) * flown),
+      center: position + shake,
+      length: length,
       heading: _headingOf(course),
       thrust: launch,
       flicker: 0.9 + 0.1 * math.sin(progress * 160),
+      time: progress,
     );
   }
 
