@@ -590,6 +590,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "iconStyleHidden": MessageLookupByLibrary.simpleMessage("非表示"),
     "iconStylePlain": MessageLookupByLibrary.simpleMessage("背景なし"),
     "iconUrl": MessageLookupByLibrary.simpleMessage("アイコンURL"),
+    "ignition": MessageLookupByLibrary.simpleMessage("点火"),
     "ignoreBatteryOptimization": MessageLookupByLibrary.simpleMessage(
       "電池の最適化を無視",
     ),
@@ -699,10 +700,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("言語"),
     "large": MessageLookupByLibrary.simpleMessage("大"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("最終更新"),
+    "launchEffect": MessageLookupByLibrary.simpleMessage("起動エフェクト"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("起動が完了しませんでした"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "前回、アプリは起動中に予期せず終了しました。今回の自動セットアップはスキップしました。手動で起動して再試行できます。",
     ),
+    "launchPeek": MessageLookupByLibrary.simpleMessage("起動せずに見てみる"),
     "layout": MessageLookupByLibrary.simpleMessage("レイアウト"),
     "light": MessageLookupByLibrary.simpleMessage("ライト"),
     "lineIssueTip": m21,
@@ -981,6 +984,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "restoreStrategyOverride": MessageLookupByLibrary.simpleMessage("上書き"),
     "restoreSuccess": MessageLookupByLibrary.simpleMessage("復元が完了しました"),
     "retry": MessageLookupByLibrary.simpleMessage("再試行"),
+    "rocket": MessageLookupByLibrary.simpleMessage("ロケット"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("ルートアドレス"),
     "routeMode": MessageLookupByLibrary.simpleMessage("ルートモード"),
     "routeModeBypassPrivate": MessageLookupByLibrary.simpleMessage(

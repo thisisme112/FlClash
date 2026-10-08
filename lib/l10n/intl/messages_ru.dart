@@ -726,6 +726,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "iconStyleHidden": MessageLookupByLibrary.simpleMessage("Скрыто"),
     "iconStylePlain": MessageLookupByLibrary.simpleMessage("Без подложки"),
     "iconUrl": MessageLookupByLibrary.simpleMessage("URL значка"),
+    "ignition": MessageLookupByLibrary.simpleMessage("Зажигание"),
     "ignoreBatteryOptimization": MessageLookupByLibrary.simpleMessage(
       "Игнорировать оптимизацию батареи",
     ),
@@ -846,11 +847,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "language": MessageLookupByLibrary.simpleMessage("Язык"),
     "large": MessageLookupByLibrary.simpleMessage("Крупный"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("Последнее обновление"),
+    "launchEffect": MessageLookupByLibrary.simpleMessage("Эффект запуска"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage(
       "Запуск не завершён",
     ),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
       "В прошлый раз приложение неожиданно завершилось во время запуска. Автоматическая настройка для этого запуска пропущена; вы можете запустить её вручную.",
+    ),
+    "launchPeek": MessageLookupByLibrary.simpleMessage(
+      "Осмотреться без запуска",
     ),
     "layout": MessageLookupByLibrary.simpleMessage("Макет"),
     "light": MessageLookupByLibrary.simpleMessage("Светлая"),
@@ -1222,6 +1227,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Восстановление выполнено",
     ),
     "retry": MessageLookupByLibrary.simpleMessage("Повторить"),
+    "rocket": MessageLookupByLibrary.simpleMessage("Ракета"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Адреса маршрутов"),
     "routeMode": MessageLookupByLibrary.simpleMessage("Режим маршрутизации"),
     "routeModeBypassPrivate": MessageLookupByLibrary.simpleMessage(

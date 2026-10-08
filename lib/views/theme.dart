@@ -40,6 +40,8 @@ class ThemeView extends StatelessWidget {
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           const _TabAnimationItem(),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          const _LaunchEffectItem(),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
           const _SidebarBlurItem(),
           const _TextScaleFactorItem(),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
@@ -591,6 +593,41 @@ class _TabAnimationItem extends ConsumerWidget {
           ref
               .read(appSettingProvider.notifier)
               .update((state) => state.copyWith(tabAnimation: value));
+        },
+      ),
+    );
+  }
+}
+
+class _LaunchEffectItem extends ConsumerWidget {
+  const _LaunchEffectItem();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = context.appLocalizations;
+    final launchEffect = ref.watch(
+      themeSettingProvider.select((state) => state.launchEffect),
+    );
+    return SliverToBoxAdapter(
+      child: PreviewChoiceGroup<LaunchEffect>(
+        info: Info(label: appLocalizations.launchEffect, glyph: AppGlyphs.bolt),
+        value: launchEffect,
+        choices: [
+          PreviewChoice(
+            value: LaunchEffect.ignition,
+            label: appLocalizations.ignition,
+            pictogram: const GlyphIcon(AppGlyphs.sparkle),
+          ),
+          PreviewChoice(
+            value: LaunchEffect.rocket,
+            label: appLocalizations.rocket,
+            pictogram: const RocketIcon(),
+          ),
+        ],
+        onChanged: (value) {
+          ref
+              .read(themeSettingProvider.notifier)
+              .update((state) => state.copyWith(launchEffect: value));
         },
       ),
     );
