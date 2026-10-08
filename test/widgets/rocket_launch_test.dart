@@ -126,6 +126,47 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final elapsed in [1500, 2200]) {
+    testWidgets('can stop and relaunch during the cloud wake at ${elapsed}ms', (
+      tester,
+    ) async {
+      var taps = 0;
+      await tester.pumpWidget(_host(launched: false));
+      await tester.pumpWidget(_host(launched: true));
+      await tester.pump(Duration(milliseconds: elapsed));
+      await tester.pumpWidget(_host(launched: false));
+      await tester.pumpAndSettle();
+      expect(_pad, findsOneWidget);
+      expect(_content, findsNothing);
+
+      await tester.pumpWidget(
+        _host(launched: true, onContentTap: () => taps++),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(_content);
+      expect(taps, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('releases the active cloud wake when the widget is removed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(launched: false));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 150)),
+    );
+    await tester.pumpWidget(_host(launched: true));
+    await tester.pump(const Duration(milliseconds: 1700));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+
+    expect(tester.hasRunningAnimations, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a covered sky survives resizing, dark theme and RTL changes', (
     tester,
   ) async {

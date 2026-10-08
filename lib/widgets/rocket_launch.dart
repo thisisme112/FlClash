@@ -7,23 +7,21 @@ import 'package:material_ui/material_ui.dart';
 
 import 'navigation_dock.dart';
 
-const _launchDuration = Duration(milliseconds: 2200);
+const _launchDuration = Duration(milliseconds: 2800);
 const _landDuration = Duration(milliseconds: 900);
 const _ignite = Interval(0, 0.14, curve: Curves.easeOut);
-const _flight = Interval(0.08, 0.6, curve: Curves.easeInCubic);
-const _parting = Interval(0.5, 1);
-const _beam = Interval(0.5, 0.86, curve: Curves.easeOut);
+const _flight = Interval(0.1, 0.72, curve: Curves.easeInQuad);
+const _reveal = Interval(0.65, 1, curve: Curves.easeInOutCubic);
 const _settle = Interval(0.5, 1, curve: Curves.easeOutCubic);
 const _revealZoom = 0.025;
-const _farScale = 0.38;
+const _farScale = 0.7;
 const _shake = 0.35;
 const _rocketToPad = 1.95;
-const _billowReach = 26.0;
 const _maxSkyScale = 2.0;
 
 /// Keeps [child] under a painted sky with only a rocket on its pad until
 /// [launched]. The rocket then lifts off toward the upper start corner, and
-/// the sky tears open along its contrail as the clouds roll aside; turning
+/// its pressure wake rolls the cloud bank outward to uncover the child; turning
 /// [launched] off closes the sky and lands the rocket again.
 class RocketLaunch extends StatefulWidget {
   const RocketLaunch({
@@ -55,6 +53,8 @@ class RocketLaunch extends StatefulWidget {
   State<RocketLaunch> createState() => _RocketLaunchState();
 }
 
+enum _LaunchArtwork { noon, dusk, clouds }
+
 class _RocketLaunchState extends State<RocketLaunch>
     with SingleTickerProviderStateMixin {
   late final _controller = AnimationController(
@@ -66,16 +66,18 @@ class _RocketLaunchState extends State<RocketLaunch>
   bool _peeking = false;
   _SkyPrograms? _programs;
   ui.FragmentShader? _cover;
+  ui.FragmentShader? _clouds;
   ui.Image? _sky;
   (Size, double, bool, TextDirection)? _skyKey;
-  final _artwork = <bool, ui.Image>{};
-  final _requestedArtwork = <bool>{};
+  final _artwork = <_LaunchArtwork, ui.Image>{};
+  final _requestedArtwork = <_LaunchArtwork>{};
 
   bool get _open => widget.launched || _peeking;
 
   @override
   void initState() {
     super.initState();
+    unawaited(_loadArtwork(_LaunchArtwork.clouds));
     _SkyPrograms.load().then((programs) {
       if (!mounted || programs == null) {
         return;
@@ -84,6 +86,7 @@ class _RocketLaunchState extends State<RocketLaunch>
         _skyKey = null;
         _programs = programs;
         _cover = programs.cover.fragmentShader();
+        _clouds = programs.cover.fragmentShader();
       });
     });
   }
@@ -92,18 +95,24 @@ class _RocketLaunchState extends State<RocketLaunch>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_controller.isCompleted) {
-      unawaited(_loadArtwork(Theme.of(context).brightness == Brightness.dark));
+      unawaited(
+        _loadArtwork(
+          Theme.of(context).brightness == Brightness.dark
+              ? _LaunchArtwork.dusk
+              : _LaunchArtwork.noon,
+        ),
+      );
     }
   }
 
-  Future<void> _loadArtwork(bool dusk) async {
-    if (!_requestedArtwork.add(dusk)) {
+  Future<void> _loadArtwork(_LaunchArtwork artwork) async {
+    if (!_requestedArtwork.add(artwork)) {
       return;
     }
     ui.Codec? codec;
     try {
       final data = await rootBundle.load(
-        'assets/images/launch_${dusk ? 'dusk' : 'noon'}.png',
+        'assets/images/launch_${artwork.name}.png',
       );
       codec = await ui.instantiateImageCodec(
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
@@ -114,7 +123,7 @@ class _RocketLaunchState extends State<RocketLaunch>
         return;
       }
       setState(() {
-        _artwork[dusk] = frame.image;
+        _artwork[artwork] = frame.image;
         _skyKey = null;
       });
     } catch (_) {
@@ -134,7 +143,7 @@ class _RocketLaunchState extends State<RocketLaunch>
     if (key == _skyKey) {
       return _sky;
     }
-    final artwork = _artwork[dusk];
+    final artwork = _artwork[dusk ? _LaunchArtwork.dusk : _LaunchArtwork.noon];
     final programs = _programs;
     if (size.isEmpty || (artwork == null && programs == null)) {
       return null;
@@ -180,7 +189,13 @@ class _RocketLaunchState extends State<RocketLaunch>
     _peeking = false;
     _animate(wasOpen);
     if (!_open) {
-      unawaited(_loadArtwork(Theme.of(context).brightness == Brightness.dark));
+      unawaited(
+        _loadArtwork(
+          Theme.of(context).brightness == Brightness.dark
+              ? _LaunchArtwork.dusk
+              : _LaunchArtwork.noon,
+        ),
+      );
     }
   }
 
@@ -206,6 +221,7 @@ class _RocketLaunchState extends State<RocketLaunch>
   void dispose() {
     _controller.dispose();
     _cover?.dispose();
+    _clouds?.dispose();
     _sky?.dispose();
     for (final image in _artwork.values) {
       image.dispose();
@@ -269,6 +285,8 @@ class _RocketLaunchState extends State<RocketLaunch>
                         dusk: dusk,
                         sky: sky,
                         cover: _cover,
+                        clouds: _clouds,
+                        cloudBank: _artwork[_LaunchArtwork.clouds],
                       ),
                     ),
                   ),
@@ -296,9 +314,10 @@ class _RocketLaunchState extends State<RocketLaunch>
   }
 }
 
-/// Up and toward the start side at 45 degrees, whatever the screen's shape.
+/// Mostly upward, toward the start side, through the middle cloud bank.
 Offset _courseOf(TextDirection direction) =>
-    Offset(direction == TextDirection.rtl ? 1 : -1, -1) / math.sqrt2;
+    Offset(direction == TextDirection.rtl ? 0.38 : -0.38, -1) /
+    math.sqrt(1 + 0.38 * 0.38);
 
 /// Turns a rocket drawn nose-up to face [direction].
 double _headingOf(Offset direction) => direction.direction + math.pi / 2;
@@ -628,41 +647,30 @@ class _SkyPrograms {
 const _noonSky = [Color(0xFF0B3A9E), Color(0xFF5FB6F2), Color(0xFFD4F1FF)];
 const _duskSky = [Color(0xFF141A4E), Color(0xFFB0628F), Color(0xFFFFAA72)];
 
-class _Wake {
-  factory _Wake(Size size, Offset rest, Offset course, double progress) {
-    final across = Offset(-course.dy, course.dx);
-    final center =
-        rest + course * _dot(size.center(Offset.zero) - rest, course);
-    final farthest = [
-      Offset.zero,
-      Offset(size.width, 0),
-      Offset(0, size.height),
-      Offset(size.width, size.height),
-    ].map((point) => _dot(point - center, across).abs()).reduce(math.max);
-    return _Wake._(
-      center: center,
-      halfSpan: Offset(size.width, size.height).distance / 2,
-      maxGap: farthest + _billowReach * 1.4 + 8,
-      parting: _parting.transform(progress),
-    );
+class _LaunchScene {
+  _LaunchScene(
+    Size size,
+    Offset rest,
+    Offset course,
+    double length,
+    double progress,
+  ) {
+    final toSide = course.dx < 0 ? rest.dx : size.width - rest.dx;
+    final exit = math.min(toSide / course.dx.abs(), rest.dy / course.dy.abs());
+    final distance = exit + length * 1.8;
+    flown = _flight.transform(progress);
+    head = rest + course * distance * flown;
+    impact = rest + course * distance * 0.52;
+    pressure = ((flown - 0.42) / 0.5).clamp(0.0, 1.0);
+    reveal = _reveal.transform(progress);
   }
 
-  const _Wake._({
-    required this.center,
-    required this.halfSpan,
-    required this.maxGap,
-    required this.parting,
-  });
-
-  final Offset center;
-  final double halfSpan;
-
-  /// Enough for either half to clear the screen, billows included.
-  final double maxGap;
-  final double parting;
+  late final double flown;
+  late final Offset head;
+  late final Offset impact;
+  late final double pressure;
+  late final double reveal;
 }
-
-double _dot(Offset a, Offset b) => a.dx * b.dx + a.dy * b.dy;
 
 class _LaunchPainter extends CustomPainter {
   const _LaunchPainter({
@@ -673,6 +681,8 @@ class _LaunchPainter extends CustomPainter {
     required this.dusk,
     required this.sky,
     required this.cover,
+    required this.clouds,
+    required this.cloudBank,
   });
 
   final double progress;
@@ -682,33 +692,28 @@ class _LaunchPainter extends CustomPainter {
   final bool dusk;
   final ui.Image? sky;
   final ui.FragmentShader? cover;
+  final ui.FragmentShader? clouds;
+  final ui.Image? cloudBank;
 
   double get _rocketLength => padRadius * _rocketToPad;
-
-  /// Where the rocket is wholly off the screen.
-  Offset _endOf(Size size) {
-    final toSide = course.dx < 0 ? rest.dx : size.width - rest.dx;
-    final exit = math.min(toSide / course.dx.abs(), rest.dy / course.dy.abs());
-    return rest + course * (exit + _rocketLength * 1.5);
-  }
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) {
       return;
     }
-    final end = _endOf(size);
+    final scene = _LaunchScene(size, rest, course, _rocketLength, progress);
     final sky = this.sky;
     final cover = this.cover;
-    if (sky != null && cover != null) {
-      _paintCover(canvas, size, sky, cover, end);
+    final clouds = this.clouds;
+    if (sky != null && cover != null && clouds != null) {
+      _paintAtmosphere(canvas, size, scene, sky, cover, foreground: false);
     } else if (sky != null) {
       canvas.drawImageRect(
         sky,
         Rect.fromLTWH(0, 0, sky.width.toDouble(), sky.height.toDouble()),
         Offset.zero & size,
-        Paint()
-          ..color = _white.withValues(alpha: 1 - _settle.transform(progress)),
+        Paint()..color = _white.withValues(alpha: 1 - scene.reveal),
       );
     } else {
       canvas.drawRect(
@@ -719,7 +724,7 @@ class _LaunchPainter extends CustomPainter {
             Offset(0, size.height),
             [
               for (final color in dusk ? _duskSky : _noonSky)
-                color.withValues(alpha: 1 - _settle.transform(progress)),
+                color.withValues(alpha: 1 - scene.reveal),
             ],
             const [0, 0.6, 1],
           ),
@@ -727,54 +732,62 @@ class _LaunchPainter extends CustomPainter {
     }
     if (progress > 0) {
       _paintPad(canvas, rest, padRadius, spread: _ignite.transform(progress));
-      _paintFlyingRocket(canvas, end);
+      _paintFlyingRocket(canvas, scene);
+    }
+    if (sky != null && cover != null && clouds != null) {
+      _paintAtmosphere(canvas, size, scene, sky, clouds, foreground: true);
     }
   }
 
-  /// Feeds the tear shader in the order `launch_cover.frag` declares its
-  /// uniforms.
-  void _paintCover(
+  // Uniform order is shared with launch_cover.frag; independent shader instances
+  // keep the front cloud bank from changing the recorded background draw.
+  void _paintAtmosphere(
     Canvas canvas,
     Size size,
+    _LaunchScene scene,
     ui.Image sky,
-    ui.FragmentShader cover,
-    Offset end,
-  ) {
-    final wake = _Wake(size, rest, course, progress);
-    final trailEnd = Offset.lerp(rest, end, _flight.transform(progress))!;
-    final beaming = progress > _beam.begin && progress < _beam.end;
+    ui.FragmentShader shader, {
+    required bool foreground,
+  }) {
     final uniforms = [
       size.width,
       size.height,
       dusk ? 1.0 : 0.0,
-      wake.center.dx,
-      wake.center.dy,
-      course.dx,
-      course.dy,
-      wake.halfSpan,
-      wake.maxGap,
-      wake.parting,
       rest.dx,
       rest.dy,
-      trailEnd.dx,
-      trailEnd.dy,
-      _rocketLength * 0.07,
+      course.dx,
+      course.dy,
+      scene.head.dx,
+      scene.head.dy,
+      scene.impact.dx,
+      scene.impact.dy,
+      _rocketLength,
+      progress,
       _ignite.transform(progress),
-      beaming ? 1 - _beam.transform(progress) : 0.0,
+      scene.pressure,
+      scene.reveal,
+      foreground ? 1.0 : 0.0,
+      cloudBank == null ? 0.0 : 1.0,
     ];
     for (final (index, value) in uniforms.indexed) {
-      cover.setFloat(index, value);
+      shader.setFloat(index, value);
     }
-    cover.setImageSampler(0, sky);
-    canvas.drawRect(Offset.zero & size, Paint()..shader = cover);
+    shader.setImageSampler(0, sky);
+    shader.setImageSampler(1, cloudBank ?? sky);
+    canvas.drawRect(Offset.zero & size, Paint()..shader = shader);
   }
 
-  void _paintFlyingRocket(Canvas canvas, Offset end) {
-    final flown = _flight.transform(progress);
+  void _paintFlyingRocket(Canvas canvas, _LaunchScene scene) {
+    final flown = scene.flown;
     if (flown >= 1) {
       return;
     }
     final launch = _ignite.transform(progress);
+    final length = _rocketLength * (1 - (1 - _farScale) * flown);
+    final heading = _headingOf(course);
+    if (scene.pressure > 0 && flown < 0.95) {
+      _paintCompression(canvas, scene, length, heading);
+    }
     final settling = (1 - flown * 50).clamp(0.0, 1.0);
     final shake =
         Offset(-course.dy, course.dx) *
@@ -784,12 +797,48 @@ class _LaunchPainter extends CustomPainter {
         settling;
     _paintRocket(
       canvas,
-      center: Offset.lerp(rest, end, flown)! + shake,
-      length: _rocketLength * (1 - (1 - _farScale) * flown),
-      heading: _headingOf(course),
+      center: scene.head + shake,
+      length: length,
+      heading: heading,
       thrust: launch,
       flicker: 0.97 + 0.03 * math.sin(progress * 90),
     );
+  }
+
+  void _paintCompression(
+    Canvas canvas,
+    _LaunchScene scene,
+    double length,
+    double heading,
+  ) {
+    final strength = math.sin(scene.pressure * math.pi) * 0.6;
+    canvas
+      ..save()
+      ..translate(scene.head.dx, scene.head.dy)
+      ..rotate(heading);
+    final path = Path()
+      ..moveTo(-length * 0.55, length * 0.35)
+      ..quadraticBezierTo(-length * 0.25, -length * 0.3, 0, -length * 0.63)
+      ..quadraticBezierTo(
+        length * 0.25,
+        -length * 0.3,
+        length * 0.55,
+        length * 0.35,
+      );
+    canvas
+      ..drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = length * 0.2
+          ..strokeCap = StrokeCap.round
+          ..shader = ui.Gradient.linear(
+            Offset(0, -length * 0.63),
+            Offset(0, length * 0.35),
+            [_white.withValues(alpha: strength), _white.withValues(alpha: 0)],
+          ),
+      )
+      ..restore();
   }
 
   @override
@@ -800,5 +849,7 @@ class _LaunchPainter extends CustomPainter {
       oldDelegate.padRadius != padRadius ||
       oldDelegate.dusk != dusk ||
       oldDelegate.sky != sky ||
-      oldDelegate.cover != cover;
+      oldDelegate.cover != cover ||
+      oldDelegate.clouds != clouds ||
+      oldDelegate.cloudBank != cloudBank;
 }
