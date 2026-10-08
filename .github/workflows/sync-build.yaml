@@ -25,7 +25,6 @@ concurrency:
 env:
   UPSTREAM: https://github.com/chen08209/FlClash.git
   HAS_KEYSTORE: ${{ secrets.KEYSTORE != '' }}
-  HAS_MAIL: ${{ secrets.MAIL_USERNAME != '' && secrets.MAIL_PASSWORD != '' }}
 
 jobs:
   sync-build:
@@ -157,20 +156,12 @@ jobs:
             --title "$tag" \
             --notes "Upstream $(git rev-parse --short upstream/main) merged into ${{ github.ref_name }}. Signed with the fork's key: ${{ env.HAS_KEYSTORE }}."
 
-      - name: Send mail
-        if: steps.merge.outputs.changed == 'true' && env.HAS_MAIL == 'true'
-        uses: dawidd6/action-send-mail@v22
-        with:
-          server_address: ${{ secrets.MAIL_SERVER || 'smtp.qq.com' }}
-          server_port: 465
-          secure: true
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          from: FlClash sync-build <${{ secrets.MAIL_USERNAME }}>
-          to: ${{ secrets.MAIL_TO || '2456157699@qq.com' }}
-          subject: FlClash build ${{ steps.release.outputs.tag }} is ready
-          body: |
-            Upstream was merged into ${{ github.ref_name }} and the arm64 APK built successfully.
-
-            Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.release.outputs.tag }}
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Notify
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # The mention makes GitHub email the repository owner.
+          gh api "repos/$GH_REPO/commits/$(git rev-parse HEAD)/comments" \
+            -f body="@${{ github.repository_owner }} Build ${{ steps.release.outputs.tag }} is ready: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.release.outputs.tag }}"
