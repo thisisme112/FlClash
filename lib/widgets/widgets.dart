@@ -20,6 +20,7 @@ export 'fade_box.dart';
 export 'focus.dart';
 export 'grid.dart';
 export 'icon.dart';
+export 'boot_text.dart';
 export 'ignition.dart';
 export 'inherited.dart';
 export 'input.dart';

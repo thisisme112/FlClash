@@ -39,7 +39,7 @@ class RunTimeCard extends StatelessWidget {
                   builder: (_, ref, _) {
                     return Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
+                      child: BootText(
                         getTimeText(ref.watch(runTimeProvider)),
                         style: context.textTheme.bodyMedium?.toLight
                             .adjustSize(1)

@@ -61,7 +61,7 @@ class NetworkSpeed extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
+                        BootText(
                           '↑ ${current.up.traffic.show}/s',
                           style: mutedStyle,
                         ),
@@ -76,7 +76,7 @@ class NetworkSpeed extends StatelessWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
+                              BootText(
                                 down.value,
                                 style: TextStyle(
                                   fontSize: _speedFontSize,
@@ -85,7 +85,7 @@ class NetworkSpeed extends StatelessWidget {
                                 ).toDoto,
                               ),
                               const SizedBox(width: 8),
-                              Text('↓ ${down.unit}/s', style: mutedStyle),
+                              BootText('↓ ${down.unit}/s', style: mutedStyle),
                             ],
                           ),
                         ),

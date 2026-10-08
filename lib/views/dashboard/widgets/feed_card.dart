@@ -65,7 +65,7 @@ class FeedCount extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: AlignmentDirectional.centerStart,
-      child: Text(
+      child: BootText(
         '$count',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,

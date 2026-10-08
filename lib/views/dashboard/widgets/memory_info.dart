@@ -177,13 +177,13 @@ class _MemoryInfoState extends ConsumerState<MemoryInfo>
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
+                          BootText(
                             traffic.value,
                             style: context.textTheme.bodyMedium?.toLight
                                 .adjustSize(1),
                           ),
                           const SizedBox(width: 8),
-                          Text(
+                          BootText(
                             traffic.unit,
                             style: context.textTheme.bodyMedium?.toLight
                                 .adjustSize(1),

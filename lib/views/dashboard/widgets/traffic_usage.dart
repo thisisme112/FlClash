@@ -237,7 +237,7 @@ class _TrafficDataItem extends StatelessWidget {
               const SizedBox(width: 8),
               Flexible(
                 flex: 1,
-                child: Text(
+                child: BootText(
                   value.traffic.value,
                   style: context.textTheme.bodySmall,
                   maxLines: 1,
@@ -246,7 +246,10 @@ class _TrafficDataItem extends StatelessWidget {
             ],
           ),
         ),
-        Text(value.traffic.unit, style: context.textTheme.bodySmall?.toLighter),
+        BootText(
+          value.traffic.unit,
+          style: context.textTheme.bodySmall?.toLighter,
+        ),
       ],
     );
   }

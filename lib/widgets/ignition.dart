@@ -3,13 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'boot_text.dart';
+
 const _igniteDuration = Duration(milliseconds: 1100);
 const _fadeDuration = Duration(milliseconds: 320);
-const _burstEnd = 0.7;
+const _burstEnd = bootBurstEnd;
 const _particleCount = 40;
 const _restingScale = 0.96;
 const _colorCurve = Interval(0.12, 0.6, curve: Curves.easeOut);
 const _entranceCurve = Interval(0.3, 1, curve: Curves.easeOutBack);
+const _glitchStep = Duration(milliseconds: 45);
 
 /// Shows [child] in grayscale until [active], then sets it off: a burst of
 /// sparks from [origin], color flooding back, and the child settling in.
@@ -40,6 +43,7 @@ class _IgnitionState extends State<Ignition>
     reverseDuration: _fadeDuration,
     value: widget.active ? 1 : 0,
   );
+  final _rootKey = GlobalKey();
 
   @override
   void didUpdateWidget(Ignition oldWidget) {
@@ -78,7 +82,11 @@ class _IgnitionState extends State<Ignition>
         final t = _controller.value;
         final igniting = _controller.status == AnimationStatus.forward;
         final entrance = igniting ? _entranceCurve.transform(t) : 1.0;
+        final phase = igniting
+            ? BootPhase.booting
+            : (t > 0.5 ? BootPhase.shown : BootPhase.hidden);
         return Stack(
+          key: _rootKey,
           fit: StackFit.expand,
           children: [
             // ponytail: a stopped app scrolls under a full-screen filter
@@ -87,7 +95,17 @@ class _IgnitionState extends State<Ignition>
               saturation: igniting ? _colorCurve.transform(t) : t,
               child: Transform.scale(
                 scale: _restingScale + (1 - _restingScale) * entrance,
-                child: child,
+                child: BootScope(
+                  phase: phase,
+                  progress: t,
+                  tick:
+                      t *
+                      _igniteDuration.inMilliseconds ~/
+                      _glitchStep.inMilliseconds,
+                  origin: widget.origin,
+                  rootKey: _rootKey,
+                  child: child!,
+                ),
               ),
             ),
             if (igniting && t < _burstEnd)
@@ -208,7 +226,7 @@ class _BurstPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = origin.alongSize(size);
-    final reach = size.longestSide * 0.85;
+    final reach = size.longestSide * bootReach;
     final spread = Curves.easeOutCubic.transform(progress);
     final fade = 1 - progress;
     final paint = Paint();
