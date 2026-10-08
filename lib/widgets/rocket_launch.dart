@@ -25,6 +25,9 @@ const _farScale = 0.7;
 const _initialPitch = 0.45;
 const _rocketToPad = 1.95;
 const _maxSkyScale = 2.0;
+const _rollRadius = 0.06;
+// launch_cover.frag thickens each roll by this much per pixel it travels.
+const _rollGrowth = 0.07;
 
 /// Keeps [child] under a painted sky with only a rocket on its pad until
 /// [launched]. The rocket then arcs up toward the start side, the sky tears
@@ -677,6 +680,7 @@ class _Flight {
         midpoint + along * _dot(size.center(Offset.zero) - midpoint, along);
     final band =
         size.shortestSide * 0.3 * (0.7 + 0.5 * _parting.transform(progress));
+    final radius = size.shortestSide * _rollRadius;
     final farthest = [
       Offset.zero,
       Offset(size.width, 0),
@@ -693,7 +697,8 @@ class _Flight {
       along: along,
       halfSpan: Offset(size.width, size.height).distance / 2,
       band: band,
-      maxGap: farthest + band + 24,
+      radius: radius,
+      maxGap: (farthest + radius + 24) / (1 - _rollGrowth),
     );
   }
 
@@ -707,6 +712,7 @@ class _Flight {
     required this.along,
     required this.halfSpan,
     required this.band,
+    required this.radius,
     required this.maxGap,
   });
 
@@ -723,7 +729,10 @@ class _Flight {
   /// How deep the painted cloud bank lining each torn edge reaches.
   final double band;
 
-  /// Enough for either half to clear the screen, its cloud bank included.
+  /// How thick each roll starts out.
+  final double radius;
+
+  /// How far the rolls travel by the end: enough to carry them off the screen.
   final double maxGap;
 }
 
@@ -815,6 +824,7 @@ class _LaunchPainter extends CustomPainter {
       flight.maxGap,
       _parting.transform(progress),
       flight.band,
+      flight.radius,
       rest.dx,
       rest.dy,
       flight.control.dx,

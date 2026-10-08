@@ -12,6 +12,7 @@ uniform float uHalfSpan;
 uniform float uMaxGap;
 uniform float uParting;
 uniform float uBand;
+uniform float uRadius;
 uniform vec2 uTrailA;
 uniform vec2 uTrailC;
 uniform vec2 uTrailB;
@@ -80,11 +81,11 @@ float openAt(float s) {
   return width * sqrt(max(0.0, 1.0 - x * x));
 }
 
-// The banks are shoved apart fastest at the ends, so each turns a rounded face
-// to the gap, ")(", rather than closing around it like an eye.
-float gapAt(float s, float open) {
+// Where each half's rolling edge has got to, measured out from the wake. The
+// ends roll faster, so the rolls curve away from the gap, ")(".
+float rollFront(float s, float open) {
   float reach = min(abs(s) / uHalfSpan, 1.0);
-  return open * uMaxGap * 1.3 * (1.0 + 2.4 * reach * reach);
+  return open * uMaxGap * (1.0 + 1.6 * reach * reach);
 }
 
 // Streaks of air rushing out from the wake to both sides, brightest at their
@@ -176,36 +177,99 @@ vec3 contrail(vec3 color, vec2 q) {
   return mix(color, cloudTone(lit), amount);
 }
 
+vec3 skyAt(vec2 point) {
+  vec2 camera = uSize * 0.5 + (point - uSize * 0.5) / uZoom + uShake;
+  return texture(uSky, clamp(camera / uSize, 0.0, 1.0)).rgb;
+}
+
+// The sky sheet at s along the wake and x out from its torn edge: the painted
+// sky, the cloud bank lining the edge, and the contrail.
+vec3 sheetAt(float s, float x, float side, float open) {
+  vec2 point = uSeam + uAlong * s + vec2(-uAlong.y, uAlong.x) * side * x;
+  vec3 color = skyAt(point);
+  if (open > 0.0 && x < uBand) {
+    float depth = x / uBand;
+    float shown = min(1.0, open * 4.0) * (1.0 - smoothstep(0.7, 1.0, depth));
+    vec4 cloud = uHasCloud > 0.5 ? edgeCloud(s, depth, side) : noiseCloud(s, x, side);
+    cloud.rgb += rimColor() * (1.0 - smoothstep(0.0, 0.3, depth)) * 0.3 * cloud.a;
+    color = cloud.rgb * shown + color * (1.0 - cloud.a * shown);
+  }
+  return contrail(color, point);
+}
+
 void main() {
+  const float tau = 6.2831853;
   vec2 p = FlutterFragCoord().xy;
   vec2 across = vec2(-uAlong.y, uAlong.x);
   vec2 offset = p - uSeam;
   float s = dot(offset, uAlong);
   float d = dot(offset, across);
   float side = d < 0.0 ? -1.0 : 1.0;
+  float x = abs(d);
   float open = openAt(s);
-  float gap = gapAt(s, open);
-  float ragged = open > 0.0
-      ? (fbm(vec2(s * 0.03, side * 5.0)) - 0.5) * 24.0 * min(1.0, open * 5.0)
-      : 0.0;
-  float fromEdge = abs(d) - gap - ragged;
+  float front = rollFront(s, open);
   vec4 result = vec4(0.0);
-  if (open <= 0.0 || fromEdge > 0.0) {
-    vec2 source = p - across * side * gap;
-    vec2 camera = uSize * 0.5 + (source - uSize * 0.5) / uZoom + uShake;
-    vec3 color = texture(uSky, clamp(camera / uSize, 0.0, 1.0)).rgb;
-    if (open > 0.0 && fromEdge < uBand) {
-      float depth = fromEdge / uBand;
-      float shown = min(1.0, open * 4.0) * (1.0 - smoothstep(0.7, 1.0, depth));
-      vec4 cloud = uHasCloud > 0.5 ? edgeCloud(s, depth, side) : noiseCloud(s, fromEdge, side);
-      cloud.rgb += rimColor() * (1.0 - smoothstep(0.0, 0.3, depth)) * 0.3 * cloud.a;
-      color = cloud.rgb * shown + color * (1.0 - cloud.a * shown);
+  float shadow = 0.0;
+  float inGap = 0.0;
+  if (front <= 0.5) {
+    result = vec4(sheetAt(s, x, side, open), 1.0);
+  } else {
+    // Each half rolls up from its torn edge onto a tube that lifts toward the
+    // viewer and travels outward, thickening as it gathers the sheet. A point
+    // on the tube at angle a sits over x = front - radius * sin(a) and came
+    // from front - radius * a on the flat sheet.
+    float radius = uRadius + front * 0.07;
+    float ragged = (fbm(vec2(s * 0.03, side * 5.0)) - 0.5) * 24.0 * min(1.0, open * 5.0);
+    float sheet = -1e6;
+    float facing = 0.0;
+    float underside = 0.0;
+    if (abs(x - front) <= radius) {
+      float a = asin(clamp((front - x) / radius, -1.0, 1.0));
+      float top = 3.14159265 - a;
+      float turns = floor((front / radius - top) / tau);
+      if (turns >= 0.0) {
+        float angle = top + turns * tau;
+        sheet = front - radius * angle;
+        facing = -cos(angle);
+      } else {
+        float low = a < 0.0 ? a + tau : a;
+        if (low * radius <= front) {
+          sheet = front - radius * low;
+          facing = cos(low);
+          underside = 1.0;
+        }
+      }
     }
-    result = vec4(contrail(color, source), 1.0);
+    if (sheet > ragged) {
+      vec3 color = sheetAt(s, sheet, side, open);
+      color = mix(color, cloudTone(0.85), underside * 0.55);
+      float light = 0.62 + 0.38 * facing;
+      result = vec4(color * light + vec3(pow(max(facing, 0.0), 10.0) * 0.12), 1.0);
+    } else if (x > front) {
+      float contact = (1.0 - smoothstep(front + radius, front + radius * 1.9, x)) * 0.22;
+      result = vec4(sheetAt(s, x, side, open) * (1.0 - contact), 1.0);
+    } else {
+      inGap = 1.0;
+      shadow = (1.0 - smoothstep(0.0, radius * 1.6, front - radius - x)) * 0.34 *
+          min(1.0, open * 4.0);
+    }
+    // Cloud billows round the roll's outline, so it reads as a rolling cloud
+    // rather than a tube.
+    float rim = abs(x - front) / radius;
+    if (rim < 1.5) {
+      float fringe = clamp((1.45 - rim) / 0.75, 0.0, 1.0);
+      vec4 cloud = uHasCloud > 0.5
+          ? edgeCloud(s * 0.7 + front * 0.4, fringe * 0.9, side)
+          : noiseCloud(s, (1.0 - fringe) * uBand, side);
+      float amount = cloud.a * min(1.0, open * 4.0) * (1.0 - smoothstep(0.85, 1.0, fringe));
+      vec3 lit = cloud.rgb + rimColor() * 0.18 * cloud.a;
+      result = vec4(lit * amount + result.rgb * (1.0 - amount), max(result.a, amount));
+      inGap *= 1.0 - amount;
+    }
   }
-  float beam = uBeam * 0.6 * exp(-max(0.0, abs(d) - gap * 0.1) / (gap * 0.35 + 18.0));
-  float rush = airRush(s, d, side) * (1.0 - smoothstep(-10.0, 50.0, fromEdge));
-  vec3 glow = sunColor() * beam * 0.95 + vec3(rush * 0.85);
-  float alpha = max(result.a, clamp(max(beam, rush), 0.0, 1.0));
+  float beam = uBeam * 0.6 * exp(-x / (front * 0.35 + 18.0));
+  float rush = airRush(s, d, side) * inGap;
+  vec3 glow = sunColor() * beam * 0.95 * inGap + vec3(rush * 0.85);
+  float alpha = max(result.a, clamp(shadow + max(beam * inGap, rush), 0.0, 1.0));
   fragColor = vec4(min(result.rgb + glow, vec3(alpha)), alpha);
 }
