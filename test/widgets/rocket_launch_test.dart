@@ -126,7 +126,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final elapsed in [2400, 3500]) {
+  for (final elapsed in [1300, 2200]) {
     testWidgets('can stop and relaunch during the cloud wake at ${elapsed}ms', (
       tester,
     ) async {

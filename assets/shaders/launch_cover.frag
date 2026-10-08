@@ -6,205 +6,187 @@ precision highp float;
 
 uniform vec2 uSize;
 uniform float uDusk;
-uniform vec2 uRest;
+uniform vec2 uSeam;
 uniform vec2 uAlong;
-uniform vec2 uHead;
-uniform vec2 uImpact;
-uniform float uLength;
-uniform float uTime;
-uniform float uThrust;
-uniform float uPressure;
-uniform float uReveal;
-uniform float uForeground;
+uniform float uHalfSpan;
+uniform float uMaxGap;
+uniform float uParting;
+uniform float uBand;
+uniform vec2 uTrailA;
+uniform vec2 uTrailC;
+uniform vec2 uTrailB;
+uniform float uFlown;
+uniform float uTrailWidth;
+uniform float uLaunch;
+uniform float uBeam;
+uniform vec2 uWave;
+uniform float uZoom;
+uniform vec2 uShake;
 uniform float uHasCloud;
-uniform vec2 uBend;
-uniform float uRise;
-uniform float uFlight;
 uniform sampler2D uSky;
 uniform sampler2D uCloud;
 
 out vec4 fragColor;
 
+const vec2 kLight = vec2(0.62, -0.78);
+
 float hash12(vec2 p) {
-  vec3 h = fract(vec3(p.xyx) * 0.1031);
-  h += dot(h, h.yzx + 33.33);
-  return fract((h.x + h.y) * h.z);
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 
-float noise(vec2 p) {
+float vnoise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash12(i), hash12(i + vec2(1, 0)), f.x),
-             mix(hash12(i + vec2(0, 1)), hash12(i + vec2(1, 1)), f.x), f.y);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), u.x),
+             mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
-float billows(vec2 p) {
-  return noise(p) * 0.57 + noise(p * 2.1 + 7.3) * 0.29 + noise(p * 4.3 + 13.1) * 0.14;
-}
-
-float glow(float distance, float width) {
-  float scaled = distance / max(width, 0.5);
-  return exp(-scaled * scaled);
-}
-
-vec4 over(vec4 front, vec4 back) {
-  return front + back * (1.0 - front.a);
-}
-
-vec3 cloudColor(float light, float depth) {
-  vec3 shade = mix(vec3(0.43, 0.57, 0.80), vec3(0.28, 0.31, 0.53), uDusk);
-  vec3 body = mix(vec3(0.81, 0.89, 0.99), vec3(0.66, 0.62, 0.83), uDusk);
-  vec3 sun = mix(vec3(1.0, 0.98, 0.92), vec3(1.0, 0.82, 0.76), uDusk);
-  vec3 cloud = mix(shade, body, smoothstep(0.13, 0.65, light));
-  cloud = mix(cloud, sun, smoothstep(0.52, 0.92, light));
-  return cloud + sun * (1.0 - smoothstep(0.0, 15.0, depth)) * 0.06;
-}
-
-vec4 paintedCloud(vec2 uv) {
-  if (uHasCloud < 0.5 || uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-    return vec4(0);
+float fbm(vec2 p) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  mat2 turn = mat2(1.6, 1.2, -1.2, 1.6);
+  for (int i = 0; i < 4; i++) {
+    value += amplitude * vnoise(p);
+    p = turn * p;
+    amplitude *= 0.5;
   }
-  vec4 cloud = texture(uCloud, uv);
-  cloud.rgb *= mix(vec3(1.0), vec3(0.83, 0.75, 0.95), uDusk);
+  return value;
+}
+
+vec3 pal(vec3 noon, vec3 dusk) {
+  return mix(noon, dusk, uDusk);
+}
+
+vec3 sunColor() { return pal(vec3(1.0, 0.984, 0.918), vec3(1.0, 0.886, 0.722)); }
+vec3 rimColor() { return pal(vec3(1.0, 0.906, 0.722), vec3(1.0, 0.69, 0.44)); }
+
+vec3 cloudTone(float lit) {
+  vec3 shade = pal(vec3(0.55, 0.64, 0.84), vec3(0.42, 0.37, 0.62));
+  vec3 body = pal(vec3(0.93, 0.95, 0.99), vec3(0.95, 0.78, 0.76));
+  vec3 light = pal(vec3(1.0), vec3(1.0, 0.91, 0.84));
+  vec3 tone = mix(shade, body, smoothstep(0.2, 0.7, lit));
+  return mix(tone, light, smoothstep(0.72, 1.0, lit));
+}
+
+// How far the sky has torn at s along the wake, 0 to about 1: a thin tear
+// runs out from the middle, then widens into a lens.
+float openAt(float s) {
+  float front = uHalfSpan * (0.1 + 3.2 * uParting);
+  float x = s / front;
+  float width = uParting * uParting * (3.0 - 2.0 * uParting);
+  return width * sqrt(max(0.0, 1.0 - x * x));
+}
+
+// The painted cloud bank laid along a torn edge, its billowing top toward the
+// gap. The texture repeats mirrored along the wake so no seam shows.
+vec4 edgeCloud(float s, float depth, float side) {
+  float u = s * 0.22 / uBand + side * 0.37;
+  u = abs(fract(u * 0.5) * 2.0 - 1.0);
+  vec4 cloud = texture(uCloud, vec2(u, 0.21 + depth * 0.33));
+  cloud.rgb *= pal(vec3(1.0), vec3(0.83, 0.75, 0.95));
   return cloud;
 }
 
-float waveExtent() {
-  return length(uSize) * 0.95;
+vec4 noiseCloud(float s, float fromEdge, float side) {
+  vec2 grain = vec2(s, fromEdge) * 0.012 + side * 3.1;
+  float lumps = vnoise(grain) * 0.6 + vnoise(grain * 2.3) * 0.25 + fbm(grain * 6.0) * 0.15;
+  float billow = 1.0 - fromEdge / uBand + (lumps - 0.45) * 1.3;
+  float amount = smoothstep(0.35, 0.5, billow);
+  return vec4(cloudTone(1.0 - fromEdge / uBand) * amount, amount);
 }
 
-float waveRadius() {
-  return waveExtent() * (1.0 - exp(-1.8 * uPressure));
+vec2 flightAt(float t) {
+  float m = 1.0 - t;
+  return m * m * uTrailA + 2.0 * m * t * uTrailC + t * t * uTrailB;
 }
 
-float arrivalAge(float radius) {
-  float arrival = -log(1.0 - min(radius / waveExtent(), 0.995)) / 1.8;
-  return max(0.0, uPressure - arrival);
-}
-
-vec2 airFlow(vec2 blast) {
-  float radius = length(blast);
-  float age = arrivalAge(radius);
-  float impulse = (1.0 - exp(-5.0 * age)) * exp(-radius / waveExtent());
-  vec2 radial = blast / max(radius, 1.0);
-  vec2 curl = vec2(-radial.y, radial.x) * sin(radius * 0.034 - age * 8.0);
-  float travel = min(radius * 0.65, min(uSize.x, uSize.y) * 0.46 * impulse);
-  return (radial + curl * 0.16) * travel;
-}
-
-vec4 cloudBank(vec2 blast, float clearing) {
-  vec2 q = blast - airFlow(blast);
-  float texture = billows(q * 0.024 + vec2(uPressure, -uPressure));
-  float age = arrivalAge(length(blast));
-  q += vec2(texture - 0.5, noise(q * 0.018) - 0.5) * age * 25.0;
-  float scale = min(uSize.x, uSize.y);
-  vec2 uv = vec2(q.y / (uSize.x * 1.9) + 0.5, 0.5 - q.x / (scale * 0.95));
-  vec4 cloud = paintedCloud(uv);
-  float opening = scale * 0.4 * (1.0 - exp(-5.0 * uPressure));
-  float edge = length(blast * vec2(0.9, 1.0)) + (texture - 0.5) * 18.0;
-  float channel = uPressure > 0.0 ? smoothstep(opening - 10.0, opening + 8.0, edge) : 1.0;
-  return cloud * channel * clearing;
-}
-
-vec4 rolledClouds(vec2 blast, float clearing) {
-  vec4 cloud = vec4(0);
-  float scale = min(uSize.x, uSize.y);
-  for (int i = 0; i < 8; i++) {
-    float index = float(i);
-    float age = max(0.0, uPressure - index * 0.018);
-    if (age <= 0.0) {
-      continue;
+// The rocket's contrail along its arc, wider where it passed longer ago, and
+// the smoke left on the pad; both are carried apart with the sky.
+vec3 contrail(vec3 color, vec2 q) {
+  if (uLaunch <= 0.0) {
+    return color;
+  }
+  float nearest = 1e9;
+  float at = 0.0;
+  float stride = uFlown / 12.0;
+  for (int i = 0; i <= 12; i++) {
+    float t = stride * float(i);
+    float d = length(q - flightAt(t));
+    if (d < nearest) {
+      nearest = d;
+      at = t;
     }
-    float angle = index * 0.78539816 + 0.2;
-    vec2 radial = vec2(cos(angle), sin(angle));
-    float spread = scale * (0.08 + 0.48 * (1.0 - exp(-3.0 * age)));
-    vec2 center = radial * spread;
-    float radius = scale * (0.035 + 0.13 * (1.0 - exp(-5.0 * age)));
-    vec2 v = blast - center;
-    if (length(v) > radius * 1.3) {
-      continue;
+  }
+  for (int i = 0; i < 3; i++) {
+    stride *= 0.5;
+    float before = clamp(at - stride, 0.0, uFlown);
+    float after = clamp(at + stride, 0.0, uFlown);
+    float d0 = length(q - flightAt(before));
+    float d1 = length(q - flightAt(after));
+    if (d0 < nearest) {
+      nearest = d0;
+      at = before;
     }
-    float side = sin(angle) < 0.0 ? -1.0 : 1.0;
-    float turn = angle + side * (1.0 - exp(-2.5 * age)) * 4.0;
-    float c = cos(turn), sn = sin(turn);
-    vec2 rotated = mat2(c, -sn, sn, c) * v;
-    float spiralAngle = atan(rotated.y, rotated.x) + 3.14159265;
-    float spiral = radius * (0.15 + spiralAngle * 0.12);
-    float width = radius * (0.3 - spiralAngle * 0.021);
-    float texture = billows(rotated * 0.055 + index);
-    float ribbon = glow(length(v) - spiral + (texture - 0.5) * 10.0, width);
-    float alpha = ribbon * sin(spiralAngle * 0.5) * smoothstep(0.0, 0.1, age)
-                  * exp(-age * 1.1) * 0.86 * clearing;
-    vec2 uv = vec2(0.5 + rotated.x / (radius * 3.5), 0.5 + rotated.y / (radius * 4.0));
-    vec4 painted = paintedCloud(uv);
-    painted.rgb *= mix(0.82, 1.06, smoothstep(-0.4, 0.5, rotated.y / radius));
-    cloud = over(painted * alpha, cloud);
+    if (d1 < nearest) {
+      nearest = d1;
+      at = after;
+    }
   }
-  return cloud;
-}
-
-vec4 pressureWave(vec2 blast, float clearing) {
-  if (uPressure <= 0.0) {
-    return vec4(0);
+  float width = uTrailWidth * (0.45 + 3.4 * (uFlown - at));
+  float padRadius = uTrailWidth * 2.6 * uLaunch;
+  vec2 pad = uTrailA + vec2(0.0, uTrailWidth * 0.6);
+  bool nearTrail = uFlown > 0.0 && nearest < width * 1.5;
+  if (!nearTrail && length(q - pad) > padRadius * 1.5) {
+    return color;
   }
-  float grain = billows(blast * 0.038 - uPressure * 1.6);
-  float shell = glow(length(blast) - waveRadius() + (grain - 0.5) * 16.0,
-                     8.0 + uPressure * 17.0);
-  float alpha = shell * smoothstep(0.0, 0.06, uPressure) * exp(-2.3 * uPressure)
-                * (0.42 + grain * 0.25) * clearing;
-  vec3 light = mix(vec3(0.96, 0.99, 1.0), vec3(1.0, 0.84, 0.85), uDusk);
-  return vec4(light * alpha, alpha);
-}
-
-vec4 exhaust(vec2 point) {
-  float height = uRest.y - point.y;
-  if (uThrust <= 0.0 || height < 0.0 || point.y < uHead.y || uFlight <= 0.0) {
-    return vec4(0);
+  float grain = fbm(q * 0.03 + 11.0);
+  float trail = uFlown > 0.0
+      ? 1.0 - smoothstep(width * 0.5, width, nearest + (grain - 0.5) * width * 0.9)
+      : 0.0;
+  float smoke = (1.0 - smoothstep(padRadius * 0.45, padRadius,
+      length(q - pad) + (grain - 0.5) * uTrailWidth)) * uLaunch;
+  float amount = max(trail * 0.95, smoke);
+  if (amount <= 0.0) {
+    return color;
   }
-  float t = sqrt(height / uRise);
-  float age = max(0.0, uFlight - t);
-  float x = uRest.x + (uBend.x + uBend.y * t) * t * t;
-  float slope = (uBend.x + 1.5 * uBend.y * t) / uRise;
-  float distance = (point.x - x) / sqrt(1.0 + slope * slope);
-  float width = uLength * (0.04 + age * 0.34);
-  float grain = billows(vec2(height * 0.04 - age * 3.0, distance * 0.06));
-  float smoke = glow(distance + (grain - 0.5) * width, width * (0.6 + grain));
-  float ends = smoothstep(0.0, uLength, height) * smoothstep(0.0, 0.025, age);
-  float alpha = smoke * ends * uThrust * (1.0 - smoothstep(0.8, 1.0, uTime)) * 0.7;
-  vec3 light = mix(vec3(0.93, 0.97, 1.0), vec3(0.84, 0.83, 0.97), uDusk);
-  return vec4(light * alpha, alpha);
+  vec2 normal = (q - flightAt(at)) / max(width, 1.0);
+  float lit = clamp(dot(normal, kLight) * 0.6 + 0.55 + (grain - 0.5) * 0.6, 0.0, 1.0);
+  return mix(color, cloudTone(lit), amount);
 }
 
 void main() {
-  vec2 point = FlutterFragCoord().xy;
+  vec2 p = FlutterFragCoord().xy;
   vec2 across = vec2(-uAlong.y, uAlong.x);
-  vec2 offset = point - uImpact;
-  vec2 blast = vec2(dot(offset, uAlong), dot(offset, across));
-  float radius = uReveal * (length(uSize) * 1.35 + uLength);
-  float grain = billows(blast * 0.021 - uPressure * 0.9);
-  float clearing = uReveal <= 0.0 ? 1.0 : smoothstep(radius - 24.0, radius + 24.0,
-                         length(blast) + (grain - 0.5) * 65.0);
-  vec2 flow = airFlow(blast);
-  vec2 screenFlow = uAlong * flow.x + across * flow.y;
-  vec4 result = vec4(0);
-  if (uForeground < 0.5) {
-    float parallax = uFlight * uFlight * (1.0 - uReveal);
-    vec2 source = mix(point - screenFlow * 0.24, uSize * 0.5, parallax * 0.045);
-    source += uAlong * parallax * 9.0;
-    vec3 sky = texture(uSky, clamp(source / uSize, 0.0, 1.0)).rgb;
-    float light = glow(length(blast) - waveRadius(), 50.0) * uPressure * exp(-3.0 * uPressure);
-    sky += vec3(0.12, 0.14, 0.17) * light;
-    result = vec4(sky * clearing, clearing);
-    result = over(exhaust(point - screenFlow * 0.12) * clearing, result);
-    float swept = uReveal > 0.0 ? glow(length(blast) - radius + (grain - 0.5) * 65.0, 30.0) : 0.0;
-    float alpha = swept * (0.35 + grain * 0.35) * (1.0 - uReveal);
-    vec3 vapor = cloudColor(0.6 + grain * 0.4, 5.0);
-    result = over(vec4(vapor * alpha, alpha), result);
-  } else {
-    result = cloudBank(blast, clearing);
-    result = over(rolledClouds(blast, clearing), result);
-    result = over(pressureWave(blast, clearing), result);
+  vec2 offset = p - uSeam;
+  float s = dot(offset, uAlong);
+  float d = dot(offset, across);
+  float side = d < 0.0 ? -1.0 : 1.0;
+  float open = openAt(s);
+  float gap = open * uMaxGap * 1.3;
+  float ragged = open > 0.0
+      ? (fbm(vec2(s * 0.03, side * 5.0)) - 0.5) * 24.0 * min(1.0, open * 5.0)
+      : 0.0;
+  float fromEdge = abs(d) - gap - ragged;
+  vec4 result = vec4(0.0);
+  if (open <= 0.0 || fromEdge > 0.0) {
+    vec2 source = p - across * side * gap;
+    vec2 camera = uSize * 0.5 + (source - uSize * 0.5) / uZoom + uShake;
+    vec3 color = texture(uSky, clamp(camera / uSize, 0.0, 1.0)).rgb;
+    if (open > 0.0 && fromEdge < uBand) {
+      float depth = fromEdge / uBand;
+      float shown = min(1.0, open * 4.0) * (1.0 - smoothstep(0.7, 1.0, depth));
+      vec4 cloud = uHasCloud > 0.5 ? edgeCloud(s, depth, side) : noiseCloud(s, fromEdge, side);
+      cloud.rgb += rimColor() * (1.0 - smoothstep(0.0, 0.3, depth)) * 0.3 * cloud.a;
+      color = cloud.rgb * shown + color * (1.0 - cloud.a * shown);
+    }
+    result = vec4(contrail(color, source), 1.0);
   }
-  fragColor = result;
+  float beam = uBeam * 0.6 * exp(-max(0.0, abs(d) - gap * 0.1) / (gap * 0.35 + 18.0));
+  float ring = uWave.y * exp(-pow((length(offset) - uWave.x) / 22.0, 2.0));
+  vec3 glow = sunColor() * beam * 0.95 + vec3(ring * 0.5);
+  float alpha = max(result.a, clamp(max(beam, ring), 0.0, 1.0));
+  fragColor = vec4(min(result.rgb + glow, vec3(alpha)), alpha);
 }
