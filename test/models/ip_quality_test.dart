@@ -21,6 +21,63 @@ IpQuality _quality(
 }
 
 void main() {
+  test(
+    'Net.Coffee score determines the displayed level without a local estimate',
+    () {
+      for (final (score, level) in [
+        (0, IpQualityLevel.risky),
+        (24, IpQualityLevel.risky),
+        (25, IpQualityLevel.normal),
+        (49, IpQualityLevel.normal),
+        (50, IpQualityLevel.good),
+        (100, IpQualityLevel.good),
+      ]) {
+        expect(
+          _quality(
+            IpType.hosting,
+            isAbuser: true,
+          ).copyWith(trustScore: score).level,
+          level,
+        );
+      }
+    },
+  );
+
+  test(
+    'Claude assessment follows Net.Coffee region rules without changing raw scores',
+    () {
+      for (final country in [
+        'CN',
+        'HK',
+        'MO',
+        'RU',
+        'KP',
+        'IR',
+        'SY',
+        'CU',
+        'BY',
+        'VE',
+      ]) {
+        final quality = _quality(
+          IpType.hosting,
+        ).copyWith(trustScore: 96, countryCode: country);
+        expect(quality.claudeTrustScore, 0);
+        expect(quality.trustScore, 96);
+        expect(quality.level, IpQualityLevel.good);
+      }
+      expect(
+        _quality(
+          IpType.hosting,
+        ).copyWith(trustScore: 86, countryCode: 'US').claudeTrustScore,
+        86,
+      );
+      expect(
+        _quality(IpType.hosting).copyWith(countryCode: 'HK').claudeTrustScore,
+        isNull,
+      );
+    },
+  );
+
   group('IpQuality.level', () {
     test('rates residential, mobile and business addresses good', () {
       for (final type in [IpType.residential, IpType.mobile, IpType.business]) {

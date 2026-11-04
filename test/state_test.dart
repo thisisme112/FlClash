@@ -1,10 +1,10 @@
-import 'package:fl_clash/common/color.dart';
 import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_color_utilities/hct/hct.dart';
+import 'package:prism_ui/hct/hct.dart';
+import 'package:prism_ui/prism_ui.dart';
 
 void main() {
   test(
@@ -32,41 +32,24 @@ void main() {
           accentColor: const Color(defaultPrimaryColor),
         );
 
-    final variant = container.read(themeSettingProvider).schemeVariant;
+    final style = container.read(themeSettingProvider).colorStyle;
 
     expect(
       container.read(genColorSchemeProvider(Brightness.light)),
-      ColorScheme.fromSeed(
+      seededColorScheme(
         seedColor: lightSeed,
         brightness: Brightness.light,
-        dynamicSchemeVariant: variant,
-      ).toLab(),
+        style: style,
+      ),
     );
     expect(
       container.read(genColorSchemeProvider(Brightness.dark)),
-      ColorScheme.fromSeed(
+      seededColorScheme(
         seedColor: darkSeed,
         brightness: Brightness.dark,
-        dynamicSchemeVariant: variant,
-      ).toDotMatrix(),
+        style: style,
+      ),
     );
-  });
-
-  test('each brightness swaps its own neutrals and keeps the seed accents', () {
-    final light = ColorScheme.fromSeed(seedColor: const Color(0xFF0000FF));
-    final seeded = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF0000FF),
-      brightness: Brightness.dark,
-    );
-    final dark = seeded.toDotMatrix();
-
-    expect(light.toDotMatrix(), light);
-    expect(dark.toLab(), dark);
-    expect(light.toLab().primary, light.primary);
-    expect(light.toLab().surface, isNot(light.surface));
-    expect(dark.primary, seeded.primary);
-    expect(dark.surface, isNot(seeded.surface));
-    expect(dark.outlineVariant, dark.surfaceContainerHighest);
   });
 
   test('pure black darkens only the dark scheme and keeps surface order', () {
@@ -105,13 +88,11 @@ void main() {
 
     expect(
       container.read(genColorSchemeProvider(Brightness.light)),
-      ColorScheme.fromSeed(
+      seededColorScheme(
         seedColor: accent,
         brightness: Brightness.light,
-        dynamicSchemeVariant: container
-            .read(themeSettingProvider)
-            .schemeVariant,
-      ).toLab(),
+        style: container.read(themeSettingProvider).colorStyle,
+      ),
     );
   });
 }

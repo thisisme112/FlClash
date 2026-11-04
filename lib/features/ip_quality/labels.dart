@@ -1,6 +1,18 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fl_clash/ui/ui.dart';
+import 'package:flutter/widgets.dart';
+
+String trustScoreLabel(BuildContext context, int score) {
+  final localizations = context.appLocalizations;
+  return switch (score) {
+    >= 95 => localizations.scorePristine,
+    >= 80 => localizations.scoreClean,
+    >= 50 => localizations.ipQualityGood,
+    >= 25 => localizations.scoreNeutral,
+    _ => localizations.scoreSuspicious,
+  };
+}
 
 extension IpTypeLabel on IpType {
   String label(BuildContext context) {
@@ -10,6 +22,7 @@ extension IpTypeLabel on IpType {
       IpType.mobile => localizations.ipTypeMobile,
       IpType.business => localizations.ipTypeBusiness,
       IpType.hosting => localizations.ipTypeHosting,
+      IpType.unknown => localizations.ipTypeUnknown,
     };
   }
 }

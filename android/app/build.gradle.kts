@@ -1,12 +1,9 @@
-import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
 }
 
 val localProperties = Properties().apply {
@@ -69,22 +66,17 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            // A fork build: it keeps its own id beside the official app and
-            // reports nothing to upstream's Crashlytics project.
-            applicationIdSuffix = ".dev"
-            signingConfig = signingConfigs.getByName(
-                if (hasReleaseSigning) "release" else "debug",
-            )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+                applicationIdSuffix = ".dev"
+            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-
-            configure<CrashlyticsExtension> {
-                nativeSymbolUploadEnabled = false
-                mappingFileUploadEnabled = false
-            }
         }
     }
 
@@ -113,9 +105,6 @@ dependencies {
     implementation(libs.smali.dexlib2) {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics.ndk)
-    implementation(libs.firebase.analytics)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

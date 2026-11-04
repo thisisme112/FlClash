@@ -1,0 +1,66 @@
+name: Inspect failed Vantage builds
+
+on:
+  workflow_run:
+    workflows:
+      - Vantage installation packages
+      - Sync upstream and build Vantage
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  inspect:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.head_branch == github.event.repository.default_branch ||
+       startsWith(github.event.workflow_run.head_branch, 'build/vantage-packages/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Read failed build steps
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          FAILED_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          mkdir -p diagnostics
+          gh run view "$FAILED_RUN" --repo "$GH_REPO" --log-failed > diagnostics/failed-steps.log
+      - name: Classify the failure
+        id: classify
+        run: python3 tool/build_recovery.py diagnostics/failed-steps.log
+      - name: Retry a temporary failure once
+        if: steps.classify.outputs.transient == 'true' && github.event.workflow_run.run_attempt < 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          FAILED_RUN: ${{ github.event.workflow_run.id }}
+        run: gh run rerun "$FAILED_RUN" --repo "$GH_REPO" --failed
+      - name: Record the recovery result
+        env:
+          TEMPORARY: ${{ steps.classify.outputs.transient }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          FAILED_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          if os.environ['TEMPORARY'] == 'true' and int(os.environ['ATTEMPT']) < 2:
+              message = 'A temporary infrastructure failure was detected. Failed jobs were retried once.'
+          else:
+              message = 'Source or repeated failures require a targeted fix. No source code was overwritten.'
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as summary:
+              summary.write(message + '\n\nBuild: ' + os.environ['FAILED_URL'] + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vantage-build-failure-${{ github.event.workflow_run.id }}
+          path: diagnostics/
+          retention-days: 90
