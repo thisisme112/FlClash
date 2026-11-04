@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/service_probe.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/features/ip_quality/ip_quality_summary.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/ip_quality.dart';
 import 'package:fl_clash/providers/outbound_ip.dart';
@@ -250,9 +251,17 @@ void main() {
           ),
           child: child,
         ),
-        child: const RepaintBoundary(
+        child: RepaintBoundary(
           key: boundaryKey,
-          child: HostScaffold(body: VantageBackdrop(child: NetworkPathView())),
+          child: HostScaffold(
+            body: VantageBackdrop(
+              child: NetworkPathView(
+                platform: platform == TargetPlatform.android
+                    ? SupportPlatform.Android
+                    : SupportPlatform.Windows,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -443,7 +452,15 @@ void main() {
     expect(requestedAddresses, [_ip]);
     expect(find.text('Could not detect the Claude exit IP'), findsOneWidget);
     expect(find.text('86'), findsNothing);
-    expect(find.text('0'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byWidgetPredicate(
+          (widget) => widget is IpQualitySummary && widget.claude,
+        ),
+        matching: find.text('0'),
+      ),
+      findsNothing,
+    );
     await tester.tap(find.byTooltip('Check again'));
     expect(claudeIps.refreshes, 1);
   });
@@ -483,7 +500,15 @@ void main() {
       ),
     );
     expect(find.text('74'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byWidgetPredicate(
+          (widget) => widget is IpQualitySummary && widget.claude,
+        ),
+        matching: find.text('0'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Region restricted'), findsOneWidget);
     expect(find.textContaining('Net.Coffee assigns 0'), findsOneWidget);
   });

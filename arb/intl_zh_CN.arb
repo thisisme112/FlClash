@@ -1099,5 +1099,10 @@
   "claudeRegionScoreHint": "Net.Coffee 对此地区按 0 分展示，Claude 实际可用性单独检测。",
   "pausePathAnimation": "暂停路径动画",
   "resumePathAnimation": "恢复路径动画",
-  "claudeExitFailed": "未获取到 Claude 出口 IP"
+  "claudeExitFailed": "未获取到 Claude 出口 IP",
+  "linkOpenFailed": "无法打开链接，点击复制链接。",
+  "quickControls": "快捷控制",
+  "quickSwitchProxy": "快捷切换节点",
+  "previousProxy": "上一个节点",
+  "nextProxy": "下一个节点"
 }

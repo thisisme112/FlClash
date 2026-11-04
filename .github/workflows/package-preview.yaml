@@ -5,6 +5,20 @@ on:
     branches:
       - 'build/vantage-packages/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      build_ref:
+        type: string
+        default: ''
+      flutter_version:
+        type: string
+        default: '3.47.6'
+      go_version:
+        type: string
+        default: '1.27.1'
+      ndk_version:
+        type: string
+        default: r28c
 
 permissions:
   contents: read
@@ -14,8 +28,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: '3.47.6'
-  GO_VERSION: '1.27.1'
+  FLUTTER_VERSION: ${{ inputs.flutter_version || '3.47.6' }}
+  GO_VERSION: ${{ inputs.go_version || '1.27.1' }}
 
 jobs:
   windows:
@@ -26,6 +40,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          ref: ${{ inputs.build_ref || github.sha }}
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -58,6 +73,8 @@ jobs:
           exit $LASTEXITCODE
       - name: Build installer and portable archive
         run: dart setup.dart windows --env pre --targets exe,zip
+      - name: Verify Windows URL launch integration
+        run: flutter test test/common/external_url_test.dart --reporter expanded
       - name: Verify bundled Core integrity
         shell: pwsh
         run: |
@@ -68,13 +85,14 @@ jobs:
           $manifest = Get-Content "$bundle\manifest.json" | ConvertFrom-Json
           $actual = (Get-FileHash "$bundle\FlClashCore.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($manifest.coreSha256 -ne $actual) { throw 'Bundled Core hash does not match the manifest' }
+          git rev-parse HEAD | Out-File dist/build-source.txt -Encoding utf8
           Get-ChildItem dist -Recurse -File | Select-Object Name, Length
       - uses: actions/upload-artifact@v4
         with:
           name: FlClash-vantage-windows-x64
           path: dist/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
 
   android:
     name: Android ARM64 APK
@@ -86,6 +104,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          ref: ${{ inputs.build_ref || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -106,7 +125,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: ndk
         with:
-          ndk-version: r28c
+          ndk-version: ${{ inputs.ndk_version || 'r28c' }}
           link-to-sdk: true
       - name: Resolve Flutter dependencies
         run: flutter pub get
@@ -135,6 +154,7 @@ jobs:
           printf '{"APP_ENV":"pre"}\n' > env.json
           flutter build apk --release --target-platform android-arm64 --split-per-abi --dart-define-from-file=env.json
           mkdir -p dist
+          git rev-parse HEAD > dist/build-source.txt
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/FlClash-vantage-android-arm64.apk
           if [ "$HAS_SIGNING" = 'true' ]; then
             echo 'Signed using the configured repository key.' > dist/android-signing.txt
@@ -146,4 +166,4 @@ jobs:
           name: FlClash-vantage-android-arm64
           path: dist/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90

@@ -1192,6 +1192,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "lineIssueTip": m47,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Word wrap"),
     "link": MessageLookupByLibrary.simpleMessage("Link"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not open the link. Tap to copy it.",
+    ),
     "liquidGlass": MessageLookupByLibrary.simpleMessage("Liquid Glass"),
     "list": MessageLookupByLibrary.simpleMessage("List"),
     "listen": MessageLookupByLibrary.simpleMessage("Listen"),
@@ -1465,6 +1468,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkType": MessageLookupByLibrary.simpleMessage("Network type"),
     "nextMatch": MessageLookupByLibrary.simpleMessage("Next match"),
+    "nextProxy": MessageLookupByLibrary.simpleMessage("Next node"),
     "no": MessageLookupByLibrary.simpleMessage("No"),
     "noData": MessageLookupByLibrary.simpleMessage("No data"),
     "noInfo": MessageLookupByLibrary.simpleMessage("No info"),
@@ -1568,6 +1572,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "preview": MessageLookupByLibrary.simpleMessage("Preview"),
     "previousMatch": MessageLookupByLibrary.simpleMessage("Previous match"),
+    "previousProxy": MessageLookupByLibrary.simpleMessage("Previous node"),
     "privateKey": MessageLookupByLibrary.simpleMessage("Private key"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage(
       "Private key passphrase",
@@ -1647,7 +1652,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "This link is too long for a QR code. Use Copy link instead.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Quick actions"),
+    "quickControls": MessageLookupByLibrary.simpleMessage("Quick controls"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Quick edit"),
+    "quickSwitchProxy": MessageLookupByLibrary.simpleMessage(
+      "Quick node switch",
+    ),
     "recentRequests": MessageLookupByLibrary.simpleMessage("Recent requests"),
     "recommendedIcons": MessageLookupByLibrary.simpleMessage("Suggested"),
     "recordType": MessageLookupByLibrary.simpleMessage("Record type"),

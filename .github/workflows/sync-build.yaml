@@ -1,0 +1,128 @@
+name: Sync upstream and build Vantage
+
+on:
+  schedule:
+    - cron: '17 20 * * *'
+  push:
+    branches:
+      - feat/dot-matrix
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build even when upstream has no new commits
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-vantage-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      run: ${{ steps.prepare.outputs.run }}
+      source: ${{ steps.commit.outputs.source }}
+      flutter: ${{ steps.prepare.outputs.flutter_version }}
+      go: ${{ steps.prepare.outputs.go_version }}
+      ndk: ${{ steps.prepare.outputs.ndk_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Fetch the latest upstream source
+        run: |
+          git remote add upstream https://github.com/chen08209/FlClash.git
+          git fetch --no-tags upstream main
+      - name: Read upstream toolchain pins
+        id: prepare
+        env:
+          FORCE: ${{ github.event_name == 'push' || inputs.force }}
+        run: |
+          args=()
+          if [ "$FORCE" = 'true' ]; then args+=(--force); fi
+          python3 tool/sync_upstream.py prepare "${args[@]}"
+      - name: Merge upstream while retaining Vantage commits
+        if: steps.prepare.outputs.run == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python3 tool/sync_upstream.py merge
+          git submodule update --init --recursive
+      - uses: actions/setup-go@v5
+        if: steps.prepare.outputs.run == 'true'
+        with:
+          go-version: ${{ steps.prepare.outputs.go_version }}
+          cache-dependency-path: core/go.sum
+      - uses: Swatinem/rust-cache@v2
+        if: steps.prepare.outputs.run == 'true'
+        with:
+          workspaces: |
+            services/helper
+            plugins/rust_api/rust
+      - uses: subosito/flutter-action@v2
+        if: steps.prepare.outputs.run == 'true'
+        with:
+          channel: stable
+          flutter-version: ${{ steps.prepare.outputs.flutter_version }}
+          cache: true
+      - name: Resolve and regenerate derived code
+        if: steps.prepare.outputs.run == 'true'
+        run: |
+          flutter pub get
+          dart run intl_utils:generate
+          dart run build_runner build
+          dart format lib test
+      - name: Verify source and safe automatic fixes
+        if: steps.prepare.outputs.run == 'true'
+        run: |
+          python3 -m unittest discover -s tool/tests -p 'test_*.py'
+          if ! flutter analyze --no-fatal-infos; then
+            dart fix --apply
+            dart format lib test
+            flutter analyze --no-fatal-infos
+          fi
+          dart run tool/test.dart -- --reporter expanded --concurrency=4
+          git diff --check
+      - name: Save the verified source
+        id: commit
+        if: steps.prepare.outputs.run == 'true'
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git add --all
+          if ! git diff --cached --quiet || git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+            git commit -m 'chore: sync upstream and preserve vantage features'
+            git push origin "HEAD:$BRANCH"
+          fi
+          echo "source=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Preserve diagnostics
+        if: failure()
+        run: |
+          mkdir -p diagnostics
+          git status --short > diagnostics/git-status.txt
+          git diff --cc > diagnostics/merge-conflicts.diff
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: vantage-sync-diagnostics
+          path: diagnostics/
+          retention-days: 90
+
+  packages:
+    needs: sync
+    if: needs.sync.outputs.run == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/package-preview.yaml
+    with:
+      build_ref: ${{ needs.sync.outputs.source }}
+      flutter_version: ${{ needs.sync.outputs.flutter }}
+      go_version: ${{ needs.sync.outputs.go }}
+      ndk_version: ${{ needs.sync.outputs.ndk }}
+    secrets: inherit

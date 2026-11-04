@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/service_probe.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/ip_quality/ip_quality.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/outbound_ip.dart';
@@ -15,6 +16,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'route_flow.dart';
+import 'network_panel.dart';
+import 'network_controls.dart';
+import 'widgets/proxy_groups.dart' show showProxiesSheet;
 import 'widgets/service_status.dart' show showServiceStatusSheet;
 
 const _rowHeight = 78.0;
@@ -22,7 +26,9 @@ const _engineWidth = 156.0;
 const _wireWidth = 40.0;
 
 class NetworkPathView extends ConsumerStatefulWidget {
-  const NetworkPathView({super.key});
+  const NetworkPathView({super.key, this.platform});
+
+  final SupportPlatform? platform;
 
   @override
   ConsumerState<NetworkPathView> createState() => _NetworkPathViewState();
@@ -173,6 +179,11 @@ class _NetworkPathViewState extends ConsumerState<NetworkPathView> {
                 ),
               ),
               IconButton(
+                tooltip: localizations.quickSwitchProxy,
+                onPressed: () => showProxiesSheet(context),
+                icon: const GlyphIcon(AppGlyphs.proxies),
+              ),
+              IconButton(
                 tooltip: _paused
                     ? localizations.resumePathAnimation
                     : localizations.pausePathAnimation,
@@ -190,12 +201,14 @@ class _NetworkPathViewState extends ConsumerState<NetworkPathView> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          const NetworkProxySwitch(),
+          const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 900;
-              final quality = _PathPanel(child: IpQualitySummary(ip: ip));
-              final claudeQuality = _PathPanel(
+              final quality = NetworkPanel(child: IpQualitySummary(ip: ip));
+              final claudeQuality = NetworkPanel(
                 child: IpQualitySummary(
                   ip: claudeExit?.ip,
                   claude: true,
@@ -310,6 +323,10 @@ class _NetworkPathViewState extends ConsumerState<NetworkPathView> {
               );
             },
           ),
+          const SizedBox(height: 24),
+          NetworkDashboardControls(
+            platform: widget.platform ?? SupportPlatform.currentPlatform,
+          ),
           const SizedBox(height: 28),
           const Divider(),
           const SizedBox(height: 18),
@@ -335,37 +352,6 @@ Color _routeColor(BuildContext context, int index) {
       : color;
 }
 
-class _PathPanel extends StatelessWidget {
-  const _PathPanel({required this.child, this.accent});
-
-  final Widget child;
-  final Color? accent;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = context.colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: ShapeDecoration(
-        color: SurfaceLevel.card.colorOf(scheme),
-        shape: AppShape.sm.copyWith(
-          side: BorderSide(color: accent ?? scheme.outlineVariant),
-        ),
-        shadows: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: scheme.brightness == Brightness.dark ? 0.2 : 0.04,
-            ),
-            offset: const Offset(0, 1),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
 class _EntryNode extends ConsumerWidget {
   const _EntryNode();
 
@@ -374,7 +360,7 @@ class _EntryNode extends ConsumerWidget {
     final hide = ref.watch(appSettingProvider.select((state) => state.hideIp));
     final localIp = ref.watch(localIpProvider);
     final labels = context.appLocalizations;
-    return _PathPanel(
+    return NetworkPanel(
       child: Row(
         spacing: 12,
         children: [
@@ -428,7 +414,7 @@ class _EngineNode extends ConsumerWidget {
           : null,
       child: Text(running ? labels.stop : labels.start),
     );
-    return _PathPanel(
+    return NetworkPanel(
       accent: running ? scheme.success : null,
       child: compact
           ? Row(

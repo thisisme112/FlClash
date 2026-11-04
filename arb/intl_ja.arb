@@ -1099,5 +1099,10 @@
   "claudeRegionScoreHint": "Net.Coffee はこの地域を 0 点とします。Claude の実際の利用可否は別に確認します。",
   "pausePathAnimation": "経路アニメーションを停止",
   "resumePathAnimation": "経路アニメーションを再開",
-  "claudeExitFailed": "Claude の出口 IP を取得できませんでした"
+  "claudeExitFailed": "Claude の出口 IP を取得できませんでした",
+  "linkOpenFailed": "リンクを開けません。タップしてコピーしてください。",
+  "quickControls": "クイック操作",
+  "quickSwitchProxy": "ノードのクイック切替",
+  "previousProxy": "前のノード",
+  "nextProxy": "次のノード"
 }

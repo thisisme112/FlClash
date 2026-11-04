@@ -126,6 +126,69 @@ void main() {
     },
   );
 
+  test(
+    'Net.Coffee accepts its CIDR cache while retaining the queried IP',
+    () async {
+      final lookup = _lookup({
+        'ip.net.coffee': _ok({
+          'ip': '203.0.113.8',
+          'cidr': '203.0.113.0/24',
+          'trust_score': 46,
+        }),
+      }, source: IpQualitySource.netCoffee);
+      final quality = await lookup.result;
+      expect(quality.ip, _ip);
+      expect(quality.trustScore, 46);
+    },
+  );
+
+  for (final cidr in [
+    '203.0.114.0/24',
+    '203.0.113.8/32',
+    '203.0.113.0/33',
+    '203.0.113.0/-1',
+    '203.0.113.0/0',
+    'bad/24',
+    '2001:db8::/48',
+  ]) {
+    test(
+      'a mismatched response cannot borrow an invalid or unrelated CIDR: $cidr',
+      () async {
+        final lookup = _lookup({
+          'ip.net.coffee': _ok({
+            'ip': '203.0.113.8',
+            'cidr': cidr,
+            'trust_score': 99,
+          }),
+        }, source: IpQualitySource.netCoffee);
+        await expectLater(
+          lookup.result,
+          throwsA(isA<IpQualityLookupException>()),
+        );
+      },
+    );
+  }
+
+  test('Net.Coffee IPv6 CIDR cache checks prefix bits', () async {
+    final adapter = _Adapter({
+      'ip.net.coffee': _ok({
+        'ip': '2001:db8:abcd:80::1',
+        'cidr': '2001:db8:abcd:80::/57',
+        'trust_score': 80,
+      }),
+    });
+    final dio = Dio()..httpClientAdapter = adapter;
+    addTearDown(dio.close);
+    final quality = await lookupIpQuality(
+      dio,
+      '2001:db8:abcd:80::2',
+      cancelToken: CancelToken(),
+      source: IpQualitySource.netCoffee,
+    );
+    expect(quality.ip, '2001:db8:abcd:80::2');
+    expect(quality.trustScore, 80);
+  });
+
   test('Net.Coffee rejects a response for another IP', () async {
     final lookup = _lookup({
       'ip.net.coffee': _ok({'ip': '203.0.113.10', 'trust_score': 99}),

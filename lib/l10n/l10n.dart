@@ -9271,6 +9271,51 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Could not open the link. Tap to copy it.`
+  String get linkOpenFailed {
+    return Intl.message(
+      'Could not open the link. Tap to copy it.',
+      name: 'linkOpenFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick controls`
+  String get quickControls {
+    return Intl.message(
+      'Quick controls',
+      name: 'quickControls',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick node switch`
+  String get quickSwitchProxy {
+    return Intl.message(
+      'Quick node switch',
+      name: 'quickSwitchProxy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Previous node`
+  String get previousProxy {
+    return Intl.message(
+      'Previous node',
+      name: 'previousProxy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Next node`
+  String get nextProxy {
+    return Intl.message('Next node', name: 'nextProxy', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1099,5 +1099,10 @@
   "claudeRegionScoreHint": "Net.Coffee는 이 지역에 0점을 부여합니다. Claude의 실제 이용 가능 여부는 별도로 확인합니다.",
   "pausePathAnimation": "경로 애니메이션 일시 정지",
   "resumePathAnimation": "경로 애니메이션 재개",
-  "claudeExitFailed": "Claude 출구 IP를 감지하지 못했습니다"
+  "claudeExitFailed": "Claude 출구 IP를 감지하지 못했습니다",
+  "linkOpenFailed": "링크를 열 수 없습니다. 눌러서 복사하세요.",
+  "quickControls": "빠른 제어",
+  "quickSwitchProxy": "빠른 노드 전환",
+  "previousProxy": "이전 노드",
+  "nextProxy": "다음 노드"
 }

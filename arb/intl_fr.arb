@@ -1099,5 +1099,10 @@
   "claudeRegionScoreHint": "Net.Coffee attribue 0 à cette région. La disponibilité réelle de Claude est vérifiée séparément.",
   "pausePathAnimation": "Suspendre l’animation des chemins",
   "resumePathAnimation": "Reprendre l’animation des chemins",
-  "claudeExitFailed": "Impossible de détecter l’IP de sortie Claude"
+  "claudeExitFailed": "Impossible de détecter l’IP de sortie Claude",
+  "linkOpenFailed": "Impossible d’ouvrir le lien. Touchez pour le copier.",
+  "quickControls": "Commandes rapides",
+  "quickSwitchProxy": "Changer rapidement de nœud",
+  "previousProxy": "Nœud précédent",
+  "nextProxy": "Nœud suivant"
 }

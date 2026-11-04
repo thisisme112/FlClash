@@ -1099,5 +1099,10 @@
   "claudeRegionScoreHint": "Net.Coffee присваивает этому региону 0 баллов. Доступность Claude проверяется отдельно.",
   "pausePathAnimation": "Приостановить анимацию маршрутов",
   "resumePathAnimation": "Возобновить анимацию маршрутов",
-  "claudeExitFailed": "Не удалось определить выходной IP Claude"
+  "claudeExitFailed": "Не удалось определить выходной IP Claude",
+  "linkOpenFailed": "Не удалось открыть ссылку. Нажмите, чтобы скопировать.",
+  "quickControls": "Быстрое управление",
+  "quickSwitchProxy": "Быстрая смена узла",
+  "previousProxy": "Предыдущий узел",
+  "nextProxy": "Следующий узел"
 }

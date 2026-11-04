@@ -1279,6 +1279,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "lineIssueTip": m47,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Ajuste de línea"),
     "link": MessageLookupByLibrary.simpleMessage("Enlace"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "No se pudo abrir el enlace. Pulsa para copiarlo.",
+    ),
     "liquidGlass": MessageLookupByLibrary.simpleMessage("Liquid Glass"),
     "list": MessageLookupByLibrary.simpleMessage("Lista"),
     "listen": MessageLookupByLibrary.simpleMessage("Escucha"),
@@ -1576,6 +1579,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkType": MessageLookupByLibrary.simpleMessage("Tipo de red"),
     "nextMatch": MessageLookupByLibrary.simpleMessage("Coincidencia siguiente"),
+    "nextProxy": MessageLookupByLibrary.simpleMessage("Nodo siguiente"),
     "no": MessageLookupByLibrary.simpleMessage("No"),
     "noData": MessageLookupByLibrary.simpleMessage("Sin datos"),
     "noInfo": MessageLookupByLibrary.simpleMessage("Sin información"),
@@ -1689,6 +1693,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "previousMatch": MessageLookupByLibrary.simpleMessage(
       "Coincidencia anterior",
     ),
+    "previousProxy": MessageLookupByLibrary.simpleMessage("Nodo anterior"),
     "privateKey": MessageLookupByLibrary.simpleMessage("Clave privada"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage(
       "Frase de contraseña de la clave privada",
@@ -1774,7 +1779,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Este enlace es demasiado largo para un código QR. Usa Copiar enlace.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Acciones rápidas"),
+    "quickControls": MessageLookupByLibrary.simpleMessage("Controles rápidos"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Edición rápida"),
+    "quickSwitchProxy": MessageLookupByLibrary.simpleMessage(
+      "Cambio rápido de nodo",
+    ),
     "recentRequests": MessageLookupByLibrary.simpleMessage(
       "Solicitudes recientes",
     ),

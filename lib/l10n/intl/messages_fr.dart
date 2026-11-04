@@ -1283,6 +1283,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "lineIssueTip": m47,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Retour à la ligne"),
     "link": MessageLookupByLibrary.simpleMessage("Lien"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "Impossible d’ouvrir le lien. Touchez pour le copier.",
+    ),
     "liquidGlass": MessageLookupByLibrary.simpleMessage("Liquid Glass"),
     "list": MessageLookupByLibrary.simpleMessage("Liste"),
     "listen": MessageLookupByLibrary.simpleMessage("Écoute"),
@@ -1576,6 +1579,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkType": MessageLookupByLibrary.simpleMessage("Type de réseau"),
     "nextMatch": MessageLookupByLibrary.simpleMessage("Résultat suivant"),
+    "nextProxy": MessageLookupByLibrary.simpleMessage("Nœud suivant"),
     "no": MessageLookupByLibrary.simpleMessage("Non"),
     "noData": MessageLookupByLibrary.simpleMessage("Aucune donnée"),
     "noInfo": MessageLookupByLibrary.simpleMessage("Aucune information"),
@@ -1693,6 +1697,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "preview": MessageLookupByLibrary.simpleMessage("Aperçu"),
     "previousMatch": MessageLookupByLibrary.simpleMessage("Résultat précédent"),
+    "previousProxy": MessageLookupByLibrary.simpleMessage("Nœud précédent"),
     "privateKey": MessageLookupByLibrary.simpleMessage("Clé privée"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage(
       "Phrase secrète de la clé privée",
@@ -1780,7 +1785,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ce lien est trop long pour un code QR. Utilisez Copier le lien.",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Actions rapides"),
+    "quickControls": MessageLookupByLibrary.simpleMessage("Commandes rapides"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Modification rapide"),
+    "quickSwitchProxy": MessageLookupByLibrary.simpleMessage(
+      "Changer rapidement de nœud",
+    ),
     "recentRequests": MessageLookupByLibrary.simpleMessage("Requêtes récentes"),
     "recommendedIcons": MessageLookupByLibrary.simpleMessage("Suggestions"),
     "recordType": MessageLookupByLibrary.simpleMessage("Type d’enregistrement"),

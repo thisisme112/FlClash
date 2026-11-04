@@ -164,6 +164,13 @@ Future<_Answer> _query(
         options: Options(
           responseType: ResponseType.plain,
           validateStatus: (_) => true,
+          headers: source == IpQualitySource.netCoffee
+              ? {
+                  'Accept': 'application/json',
+                  'Referer':
+                      'https://ip.net.coffee/ip/${Uri.encodeComponent(ip)}',
+                }
+              : null,
         ),
       )
       .timeout(timeout);
@@ -229,7 +236,9 @@ _Answer _fromNetCoffee(String ip, Map<String, dynamic> json) {
       : null;
   if (requested == null ||
       returned == null ||
-      base64Encode(requested.rawAddress) != base64Encode(returned.rawAddress)) {
+      (base64Encode(requested.rawAddress) !=
+              base64Encode(returned.rawAddress) &&
+          !_sameCoffeeNetwork(requested, returned, json['cidr']))) {
     throw const _SourceFailure(IpQualitySourceStatus.ipMismatch);
   }
   final score = json['trust_score'];
@@ -277,6 +286,37 @@ _Answer _fromNetCoffee(String ip, Map<String, dynamic> json) {
       isAbuser: _flag(json['is_abuser']),
     ),
   );
+}
+
+bool _sameCoffeeNetwork(
+  InternetAddress requested,
+  InternetAddress returned,
+  Object? cidr,
+) {
+  if (cidr is! String) return false;
+  final parts = cidr.split('/');
+  if (parts.length != 2) return false;
+  final network = InternetAddress.tryParse(parts[0]);
+  final prefix = int.tryParse(parts[1]);
+  final bytes = requested.rawAddress;
+  if (network == null ||
+      prefix == null ||
+      prefix <= 0 ||
+      prefix > bytes.length * 8 ||
+      network.rawAddress.length != bytes.length ||
+      returned.rawAddress.length != bytes.length) {
+    return false;
+  }
+  for (var i = 0; i < bytes.length; i++) {
+    final bits = (prefix - i * 8).clamp(0, 8);
+    final mask = (0xFF << (8 - bits)) & 0xFF;
+    final expected = network.rawAddress[i] & mask;
+    if ((bytes[i] & mask) != expected ||
+        (returned.rawAddress[i] & mask) != expected) {
+      return false;
+    }
+  }
+  return true;
 }
 
 _Answer? _fromIdentMe(String ip, Map<String, dynamic> json) {

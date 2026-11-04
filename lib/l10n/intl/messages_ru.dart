@@ -1242,6 +1242,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "lineIssueTip": m47,
     "lineWrap": MessageLookupByLibrary.simpleMessage("Перенос строк"),
     "link": MessageLookupByLibrary.simpleMessage("Ссылка"),
+    "linkOpenFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось открыть ссылку. Нажмите, чтобы скопировать.",
+    ),
     "liquidGlass": MessageLookupByLibrary.simpleMessage("Жидкое стекло"),
     "list": MessageLookupByLibrary.simpleMessage("Список"),
     "listen": MessageLookupByLibrary.simpleMessage("Прослушивание"),
@@ -1537,6 +1540,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "networkType": MessageLookupByLibrary.simpleMessage("Тип сети"),
     "nextMatch": MessageLookupByLibrary.simpleMessage("Следующее совпадение"),
+    "nextProxy": MessageLookupByLibrary.simpleMessage("Следующий узел"),
     "no": MessageLookupByLibrary.simpleMessage("Нет"),
     "noData": MessageLookupByLibrary.simpleMessage("Нет данных"),
     "noInfo": MessageLookupByLibrary.simpleMessage("Нет информации"),
@@ -1650,6 +1654,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "previousMatch": MessageLookupByLibrary.simpleMessage(
       "Предыдущее совпадение",
     ),
+    "previousProxy": MessageLookupByLibrary.simpleMessage("Предыдущий узел"),
     "privateKey": MessageLookupByLibrary.simpleMessage("Закрытый ключ"),
     "privateKeyPassphrase": MessageLookupByLibrary.simpleMessage(
       "Пароль закрытого ключа",
@@ -1727,7 +1732,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ссылка слишком длинная для QR-кода. Используйте «Копировать ссылку».",
     ),
     "quickActions": MessageLookupByLibrary.simpleMessage("Быстрые действия"),
+    "quickControls": MessageLookupByLibrary.simpleMessage("Быстрое управление"),
     "quickEdit": MessageLookupByLibrary.simpleMessage("Быстрое редактирование"),
+    "quickSwitchProxy": MessageLookupByLibrary.simpleMessage(
+      "Быстрая смена узла",
+    ),
     "recentRequests": MessageLookupByLibrary.simpleMessage("Последние запросы"),
     "recommendedIcons": MessageLookupByLibrary.simpleMessage("Рекомендуемые"),
     "recordType": MessageLookupByLibrary.simpleMessage("Тип записи"),

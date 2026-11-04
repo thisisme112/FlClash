@@ -101,7 +101,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       ],
       // The providers learn a resize a frame late, too late for the cards.
       body: _networkPath
-          ? const VantageBackdrop(child: NetworkPathView())
+          ? VantageBackdrop(child: NetworkPathView(platform: platform))
           : LayoutBuilder(
               builder: (context, constraints) {
                 final room = constraints.biggest / scale;
