@@ -40,12 +40,26 @@ Future<IpQuality> lookupIpQuality(
   required CancelToken cancelToken,
   Duration timeout = const Duration(seconds: 8),
   Duration hedge = const Duration(seconds: 1),
+  IpQualitySource? source,
 }) {
-  return _Lookup(dio, ip, cancelToken, timeout, hedge).run();
+  return _Lookup(dio, ip, cancelToken, timeout, hedge, source).run();
 }
 
 class _Lookup {
-  _Lookup(this.dio, this.ip, this.cancelToken, this.timeout, this.hedge);
+  _Lookup(
+    this.dio,
+    this.ip,
+    this.cancelToken,
+    this.timeout,
+    this.hedge,
+    IpQualitySource? source,
+  ) : waves = source == null
+          ? _waves
+          : [
+              [source],
+            ];
+
+  final List<List<IpQualitySource>> waves;
 
   final Dio dio;
   final String ip;
@@ -70,11 +84,11 @@ class _Lookup {
     if (_completer.isCompleted) {
       return;
     }
-    if (_wave == _waves.length) {
+    if (_wave == waves.length) {
       _settle();
       return;
     }
-    final sources = _waves[_wave++];
+    final sources = waves[_wave++];
     _inFlight += sources.length;
     for (final source in sources) {
       unawaited(
@@ -87,7 +101,7 @@ class _Lookup {
         ).then(_onAnswer, onError: (Object error) => _onError(source, error)),
       );
     }
-    if (_wave < _waves.length) {
+    if (_wave < waves.length) {
       _timer = Timer(hedge, _launch);
     }
   }
@@ -191,6 +205,8 @@ String _urlOf(IpQualitySource source, String ip) {
     IpQualitySource.ipLocate => 'https://iplocate.io/api/lookup/$ip',
     IpQualitySource.proxyCheck => 'https://proxycheck.io/v3/$ip',
     IpQualitySource.ipApiIs => 'https://api.ipapi.is/?q=$ip',
+    IpQualitySource.netCoffee =>
+      'https://ip.net.coffee/api/iprisk/${Uri.encodeComponent(ip)}',
   };
 }
 
@@ -202,7 +218,65 @@ _Answer? _parse(IpQualitySource source, String ip, Map<String, dynamic> json) {
     IpQualitySource.ipLocate => _fromIpLocate(ip, json),
     IpQualitySource.proxyCheck => _fromProxyCheck(ip, json),
     IpQualitySource.ipApiIs => _fromIpApiIs(ip, json),
+    IpQualitySource.netCoffee => _fromNetCoffee(ip, json),
   };
+}
+
+_Answer _fromNetCoffee(String ip, Map<String, dynamic> json) {
+  final requested = InternetAddress.tryParse(ip);
+  final returned = json['ip'] is String
+      ? InternetAddress.tryParse(json['ip'] as String)
+      : null;
+  if (requested == null ||
+      returned == null ||
+      base64Encode(requested.rawAddress) != base64Encode(returned.rawAddress)) {
+    throw const _SourceFailure(IpQualitySourceStatus.ipMismatch);
+  }
+  final score = json['trust_score'];
+  if (score is! num || !score.isFinite || score < 0 || score > 100) {
+    throw const _SourceFailure(IpQualitySourceStatus.noType);
+  }
+  final type = _flag(json['is_datacenter'])
+      ? IpType.hosting
+      : _flag(json['is_mobile'])
+      ? IpType.mobile
+      : _flag(json['isResidential'])
+      ? json['company_type'] == 'business'
+            ? IpType.business
+            : IpType.residential
+      : _declaredType(json['company_type']) ?? IpType.unknown;
+  return (
+    inferred: false,
+    quality: IpQuality(
+      ip: ip,
+      source: IpQualitySource.netCoffee,
+      type: type,
+      trustScore: score.round(),
+      organization:
+          _text(json['company_name']) ?? _text(json['asOrganization']),
+      asn: _asn(json['asn']),
+      country: _text(json['country']),
+      countryCode: _text(json['countryCode'])?.toUpperCase(),
+      registeredCountryCode: _text(
+        json['registered_country_code'],
+      )?.toUpperCase(),
+      isProxy: _flag(json['is_proxy']),
+      isVpn: _flag(json['is_vpn']),
+      isTor: _flag(json['is_tor']),
+      isCrawler: _flag(json['is_crawler']),
+      reportedFlags: [
+        for (final key in [
+          'is_vpn',
+          'is_proxy',
+          'is_tor',
+          'is_crawler',
+          'is_abuser',
+        ])
+          if (json[key] is bool) key,
+      ],
+      isAbuser: _flag(json['is_abuser']),
+    ),
+  );
 }
 
 _Answer? _fromIdentMe(String ip, Map<String, dynamic> json) {

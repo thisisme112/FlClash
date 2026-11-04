@@ -27,7 +27,9 @@ Future<IpQuality> ipQuality(Ref ref, String ip) async {
       'read',
       database.ipQualitiesDao.fresh(ip, maxAge),
     );
-    if (record != null) {
+    if (record != null &&
+        record.quality.source == IpQualitySource.netCoffee &&
+        record.quality.trustScore != null) {
       _expireAt(ref, record.checkedAt.add(maxAge));
       return record.quality;
     }
@@ -39,6 +41,7 @@ Future<IpQuality> ipQuality(Ref ref, String ip) async {
       request.dio,
       ip,
       cancelToken: cancelToken,
+      source: IpQualitySource.netCoffee,
     );
     final checkedAt = DateTime.now();
     await _orNull(

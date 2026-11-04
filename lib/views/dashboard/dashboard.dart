@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 
 import 'edit.dart';
 import 'layout.dart';
+import 'network_path.dart';
 import 'style.dart';
 import 'widget_registry.dart';
 import 'widgets/core_status_button.dart';
@@ -24,10 +25,15 @@ const _servicePairColumnMin = 290.0;
 const _maxColumnWidth = 440.0;
 
 class DashboardView extends ConsumerStatefulWidget {
-  const DashboardView({super.key, this.platform});
+  const DashboardView({
+    super.key,
+    this.platform,
+    this.initialNetworkPath = true,
+  });
 
   /// The host's platform when null.
   final SupportPlatform? platform;
+  final bool initialNetworkPath;
 
   @override
   ConsumerState<DashboardView> createState() => _DashboardViewState();
@@ -35,6 +41,7 @@ class DashboardView extends ConsumerStatefulWidget {
 
 class _DashboardViewState extends ConsumerState<DashboardView> {
   var _editing = false;
+  late bool _networkPath = widget.initialNetworkPath;
   final _cardKeys = <DashboardWidget, GlobalKey>{};
 
   void _setEditing(bool editing) {
@@ -62,6 +69,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       backgroundColor: DashboardColors.of(context).page,
       title: editing
           ? appLocalizations.editDashboard
+          : _networkPath
+          ? appLocalizations.networkPath
           : appLocalizations.dashboard,
       actions: [
         if (!editable) const UpdateStatusButton(),
@@ -75,7 +84,15 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             )
           : null,
       iconActions: [
-        if (editable && !editing)
+        if (!editing)
+          IconButtonData(
+            glyph: _networkPath ? AppGlyphs.dashboard : AppGlyphs.split,
+            tooltip: _networkPath
+                ? appLocalizations.dashboard
+                : appLocalizations.networkPath,
+            onPressed: () => setState(() => _networkPath = !_networkPath),
+          ),
+        if (editable && !editing && !_networkPath)
           IconButtonData(
             glyph: AppGlyphs.edit,
             tooltip: appLocalizations.editDashboard,
@@ -83,29 +100,31 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           ),
       ],
       // The providers learn a resize a frame late, too late for the cards.
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final room = constraints.biggest / scale;
-          final layout = DashboardDensity.of(room);
-          return DashboardDensityScope(
-            density: layout,
-            scale: scale,
-            child: layout.isDesktop
-                ? _DesktopDashboard(
-                    platform: platform,
-                    columns: dashboardColumnsOf(room.width),
-                    gap: gap,
-                  )
-                : _MobileDashboard(
-                    platform: platform,
-                    gap: gap,
-                    editing: editing,
-                    cardKeyOf: _cardKeyOf,
-                    onDone: () => _setEditing(false),
-                  ),
-          );
-        },
-      ),
+      body: _networkPath
+          ? const VantageBackdrop(child: NetworkPathView())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final room = constraints.biggest / scale;
+                final layout = DashboardDensity.of(room);
+                return DashboardDensityScope(
+                  density: layout,
+                  scale: scale,
+                  child: layout.isDesktop
+                      ? _DesktopDashboard(
+                          platform: platform,
+                          columns: dashboardColumnsOf(room.width),
+                          gap: gap,
+                        )
+                      : _MobileDashboard(
+                          platform: platform,
+                          gap: gap,
+                          editing: editing,
+                          cardKeyOf: _cardKeyOf,
+                          onDone: () => _setEditing(false),
+                        ),
+                );
+              },
+            ),
     );
   }
 }

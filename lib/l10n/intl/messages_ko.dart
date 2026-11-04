@@ -357,6 +357,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockQuic": MessageLookupByLibrary.simpleMessage("QUIC 차단"),
     "bodyRewrite": MessageLookupByLibrary.simpleMessage("본문 재작성"),
     "brightness": MessageLookupByLibrary.simpleMessage("밝기"),
+    "broadcastIp": MessageLookupByLibrary.simpleMessage("브로드캐스트 IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("우회 도메인"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "우회 도메인은 시스템 프록시가 켜져 있을 때만 적용됩니다.",
@@ -394,6 +395,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "checkUpdate": MessageLookupByLibrary.simpleMessage("업데이트 확인"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage("이미 최신 버전입니다"),
     "cipher": MessageLookupByLibrary.simpleMessage("암호화 방식"),
+    "claudeAssessmentHint": MessageLookupByLibrary.simpleMessage(
+      "Claude 출구 · Net.Coffee 제3자 평가",
+    ),
+    "claudeExitFailed": MessageLookupByLibrary.simpleMessage(
+      "Claude 출구 IP를 감지하지 못했습니다",
+    ),
+    "claudeRegionScoreHint": MessageLookupByLibrary.simpleMessage(
+      "Net.Coffee는 이 지역에 0점을 부여합니다. Claude의 실제 이용 가능 여부는 별도로 확인합니다.",
+    ),
+    "claudeRestrictedRegion": MessageLookupByLibrary.simpleMessage("지역 제한"),
+    "claudeTrustScore": MessageLookupByLibrary.simpleMessage("Claude 신뢰 점수"),
     "clearData": MessageLookupByLibrary.simpleMessage("데이터 지우기"),
     "clearDataAndExitTip": MessageLookupByLibrary.simpleMessage(
       "모든 프로필, 설정, 로컬 데이터를 삭제한 후 앱을 종료합니다. 앱을 다시 열면 처음부터 시작합니다.",
@@ -939,6 +951,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipAddress": MessageLookupByLibrary.simpleMessage("IP 주소"),
     "ipAsn": MessageLookupByLibrary.simpleMessage("ASN"),
     "ipFlagAbuser": MessageLookupByLibrary.simpleMessage("악용 이력"),
+    "ipFlagCrawler": MessageLookupByLibrary.simpleMessage("크롤러"),
     "ipFlagProxy": MessageLookupByLibrary.simpleMessage("프록시"),
     "ipFlagTor": MessageLookupByLibrary.simpleMessage("Tor"),
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
@@ -981,6 +994,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "label": MessageLookupByLibrary.simpleMessage("레이블"),
     "language": MessageLookupByLibrary.simpleMessage("언어"),
     "large": MessageLookupByLibrary.simpleMessage("크게"),
+    "lastChecked": MessageLookupByLibrary.simpleMessage("최근 검사"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("마지막 업데이트"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("시작이 완료되지 않음"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
@@ -1189,6 +1203,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nameserverPolicyDesc": MessageLookupByLibrary.simpleMessage(
       "일치하는 도메인은 Nameserver와 Fallback 대신 여기서 지정한 DNS 서버를 사용합니다.",
     ),
+    "nativeIp": MessageLookupByLibrary.simpleMessage("네이티브 IP"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("하단 바"),
     "network": MessageLookupByLibrary.simpleMessage("네트워크"),
     "networkAccessDeniedError": m67,
@@ -1199,11 +1214,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "서버에 연결할 수 없습니다. 네트워크 연결이나 프록시 설정을 확인하세요",
     ),
+    "networkEntry": MessageLookupByLibrary.simpleMessage("출발 기기"),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "서버 주소를 확인할 수 없습니다. URL이 올바른지, DNS가 정상인지 확인하세요",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("네트워크 이름"),
     "networkNotFoundError": m69,
+    "networkPath": MessageLookupByLibrary.simpleMessage("네트워크 경로"),
+    "networkPathHint": MessageLookupByLibrary.simpleMessage(
+      "현재 기기에서 각 서비스의 실제 출구까지",
+    ),
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "요청이 너무 많습니다(HTTP 429). 잠시 후 다시 시도하세요",
     ),
@@ -1234,6 +1254,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "이 외부 리소스는 텍스트 파일이 아닙니다",
     ),
     "none": MessageLookupByLibrary.simpleMessage("없음"),
+    "notDetected": MessageLookupByLibrary.simpleMessage("감지되지 않음"),
     "notRunning": MessageLookupByLibrary.simpleMessage("실행 중 아님"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage(
       "현재 프록시 그룹은 선택할 수 없습니다",
@@ -1266,6 +1287,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "parsePureIp": MessageLookupByLibrary.simpleMessage("순수 IP 분석"),
     "password": MessageLookupByLibrary.simpleMessage("비밀번호"),
     "paste": MessageLookupByLibrary.simpleMessage("붙여넣기"),
+    "pausePathAnimation": MessageLookupByLibrary.simpleMessage(
+      "경로 애니메이션 일시 정지",
+    ),
     "peers": MessageLookupByLibrary.simpleMessage("피어"),
     "pickFromAlbum": MessageLookupByLibrary.simpleMessage("앨범에서 선택"),
     "pinWindow": MessageLookupByLibrary.simpleMessage("창 고정"),
@@ -1408,6 +1432,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "respectRulesDesc": MessageLookupByLibrary.simpleMessage(
       "규칙 준수는 DNS 연결을 규칙에 따라 라우팅하며 Proxy Server Nameserver가 필요합니다.",
     ),
+    "respondingSites": MessageLookupByLibrary.simpleMessage("응답한 사이트"),
     "response": MessageLookupByLibrary.simpleMessage("응답"),
     "responseBody": MessageLookupByLibrary.simpleMessage("응답 본문"),
     "responseCode": MessageLookupByLibrary.simpleMessage("응답 코드"),
@@ -1422,10 +1447,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "restoreStrategyOverride": MessageLookupByLibrary.simpleMessage("덮어쓰기"),
     "restoreSuccess": MessageLookupByLibrary.simpleMessage("복원 완료"),
     "result": MessageLookupByLibrary.simpleMessage("결과"),
+    "resumePathAnimation": MessageLookupByLibrary.simpleMessage("경로 애니메이션 재개"),
     "retry": MessageLookupByLibrary.simpleMessage("다시 시도"),
     "root": MessageLookupByLibrary.simpleMessage("Root"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("라우팅 주소"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("라우팅 제외 주소"),
+    "routingEngine": MessageLookupByLibrary.simpleMessage("라우팅 엔진"),
     "routingMark": MessageLookupByLibrary.simpleMessage("라우팅 마크"),
     "ru": MessageLookupByLibrary.simpleMessage("러시아어"),
     "rule": MessageLookupByLibrary.simpleMessage("규칙"),
@@ -1564,6 +1591,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "saturation": MessageLookupByLibrary.simpleMessage("채도"),
     "save": MessageLookupByLibrary.simpleMessage("저장"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("변경 사항을 저장하시겠습니까?"),
+    "scoreClean": MessageLookupByLibrary.simpleMessage("깨끗함"),
+    "scoreNeutral": MessageLookupByLibrary.simpleMessage("중립"),
+    "scorePristine": MessageLookupByLibrary.simpleMessage("매우 깨끗함"),
+    "scoreSuspicious": MessageLookupByLibrary.simpleMessage("의심스러움"),
     "script": MessageLookupByLibrary.simpleMessage("스크립트"),
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "스크립트 모드: 확장 스크립트로 프로필 전체를 다시 작성합니다",
@@ -1746,6 +1777,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "transport": MessageLookupByLibrary.simpleMessage("전송"),
     "transportHeaders": m97,
     "trustCertificate": MessageLookupByLibrary.simpleMessage("인증서 신뢰"),
+    "trustScore": MessageLookupByLibrary.simpleMessage("신뢰 점수"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN 권한을 얻지 못해 끄기로 되돌렸습니다.",
@@ -1764,6 +1796,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ultra": MessageLookupByLibrary.simpleMessage("최고"),
     "undo": MessageLookupByLibrary.simpleMessage("실행 취소"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("통합 지연"),
+    "uniqueExits": MessageLookupByLibrary.simpleMessage("고유 출구"),
     "unknown": MessageLookupByLibrary.simpleMessage("알 수 없음"),
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage(
       "알 수 없는 네트워크 오류",

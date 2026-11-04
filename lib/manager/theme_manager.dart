@@ -20,6 +20,9 @@ ThemeData watchAppTheme(WidgetRef ref, Brightness brightness) {
     themeSettingProvider.select((state) => state.fontFamily),
   );
   final colorScheme = ref.watch(genColorSchemeProvider(brightness));
+  final colorStyle = ref.watch(
+    themeSettingProvider.select((state) => state.colorStyle),
+  );
   final locales = [
     ?getLocaleForString(locale),
     ...WidgetsBinding.instance.platformDispatcher.locales,
@@ -37,7 +40,7 @@ ThemeData watchAppTheme(WidgetRef ref, Brightness brightness) {
     return theme;
   }
   final theme = ThemeData(
-    colorScheme: colorScheme,
+    colorScheme: vantageColorScheme(colorScheme, style: colorStyle),
     fontFamily: fontFamily,
     fontFamilyFallback: appFontFamilyFallback(
       platform: defaultTargetPlatform,
@@ -45,7 +48,7 @@ ThemeData watchAppTheme(WidgetRef ref, Brightness brightness) {
       fontFamily: fontFamily,
     ),
     elevatedColorScheme: brightness == Brightness.dark
-        ? colorScheme.elevated
+        ? vantageColorScheme(colorScheme, style: colorStyle).elevated
         : null,
   );
   _appThemes[brightness] = (inputs: inputs, theme: theme);

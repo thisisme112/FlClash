@@ -295,7 +295,10 @@ void main() {
         child: _DashboardTestApp(
           child: _PageActivityTestScope(
             isActive: isActive,
-            child: const DashboardView(platform: SupportPlatform.Android),
+            child: const DashboardView(
+              initialNetworkPath: false,
+              platform: SupportPlatform.Android,
+            ),
           ),
         ),
       ),
@@ -440,7 +443,10 @@ class _DashboardTestApp extends StatelessWidget {
   final Widget child;
 
   const _DashboardTestApp({
-    this.child = const DashboardView(platform: SupportPlatform.Android),
+    this.child = const DashboardView(
+      initialNetworkPath: false,
+      platform: SupportPlatform.Android,
+    ),
   });
 
   @override

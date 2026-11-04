@@ -9,3 +9,4 @@ export 'profile_id.dart';
 export 'qr_code.dart';
 export 'scaffold/scaffold.dart';
 export 'setting_text_card.dart';
+export 'vantage.dart';

@@ -361,6 +361,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockQuic": MessageLookupByLibrary.simpleMessage("QUIC をブロック"),
     "bodyRewrite": MessageLookupByLibrary.simpleMessage("ボディ書き換え"),
     "brightness": MessageLookupByLibrary.simpleMessage("明度"),
+    "broadcastIp": MessageLookupByLibrary.simpleMessage("ブロードキャスト IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("除外ドメイン"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "除外ドメインはシステムプロキシが有効な場合のみ適用されます。",
@@ -400,6 +401,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "checkUpdate": MessageLookupByLibrary.simpleMessage("更新を確認"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage("すでに最新バージョンです"),
     "cipher": MessageLookupByLibrary.simpleMessage("暗号方式"),
+    "claudeAssessmentHint": MessageLookupByLibrary.simpleMessage(
+      "Claude 出口 · Net.Coffee による第三者評価",
+    ),
+    "claudeExitFailed": MessageLookupByLibrary.simpleMessage(
+      "Claude の出口 IP を取得できませんでした",
+    ),
+    "claudeRegionScoreHint": MessageLookupByLibrary.simpleMessage(
+      "Net.Coffee はこの地域を 0 点とします。Claude の実際の利用可否は別に確認します。",
+    ),
+    "claudeRestrictedRegion": MessageLookupByLibrary.simpleMessage("地域制限"),
+    "claudeTrustScore": MessageLookupByLibrary.simpleMessage("Claude 信頼スコア"),
     "clearData": MessageLookupByLibrary.simpleMessage("データを消去"),
     "clearDataAndExitTip": MessageLookupByLibrary.simpleMessage(
       "すべてのプロファイル、設定、ローカルデータを削除してアプリを終了します。もう一度開くと最初から始められます。",
@@ -953,6 +965,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipAddress": MessageLookupByLibrary.simpleMessage("IP アドレス"),
     "ipAsn": MessageLookupByLibrary.simpleMessage("ASN"),
     "ipFlagAbuser": MessageLookupByLibrary.simpleMessage("不正利用の履歴"),
+    "ipFlagCrawler": MessageLookupByLibrary.simpleMessage("クローラー"),
     "ipFlagProxy": MessageLookupByLibrary.simpleMessage("プロキシ"),
     "ipFlagTor": MessageLookupByLibrary.simpleMessage("Tor"),
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
@@ -997,6 +1010,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "label": MessageLookupByLibrary.simpleMessage("ラベル"),
     "language": MessageLookupByLibrary.simpleMessage("言語"),
     "large": MessageLookupByLibrary.simpleMessage("大"),
+    "lastChecked": MessageLookupByLibrary.simpleMessage("最終確認"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("最終更新"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("起動が完了しませんでした"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
@@ -1205,6 +1219,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nameserverPolicyDesc": MessageLookupByLibrary.simpleMessage(
       "一致したドメインは、Nameserver と Fallback より優先してここで指定した DNS サーバーを使います。",
     ),
+    "nativeIp": MessageLookupByLibrary.simpleMessage("ネイティブ IP"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("ボトムバー"),
     "network": MessageLookupByLibrary.simpleMessage("ネットワーク"),
     "networkAccessDeniedError": m67,
@@ -1215,11 +1230,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "サーバーに接続できませんでした。ネットワーク接続またはプロキシ設定を確認してください",
     ),
+    "networkEntry": MessageLookupByLibrary.simpleMessage("検出元の端末"),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "サーバーのアドレスを解決できませんでした。URL が正しいこと、DNS が使えることを確認してください",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("ネットワーク名"),
     "networkNotFoundError": m69,
+    "networkPath": MessageLookupByLibrary.simpleMessage("ネットワーク経路"),
+    "networkPathHint": MessageLookupByLibrary.simpleMessage(
+      "この端末から各サービスの実際の出口まで",
+    ),
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "リクエストが多すぎます（HTTP 429）。しばらく待ってから再試行してください",
     ),
@@ -1250,6 +1270,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "この外部リソースはテキストファイルではありません",
     ),
     "none": MessageLookupByLibrary.simpleMessage("なし"),
+    "notDetected": MessageLookupByLibrary.simpleMessage("未検出"),
     "notRunning": MessageLookupByLibrary.simpleMessage("停止中"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage(
       "現在のプロキシグループは選択できません",
@@ -1286,6 +1307,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "parsePureIp": MessageLookupByLibrary.simpleMessage("純粋なIPを解析"),
     "password": MessageLookupByLibrary.simpleMessage("パスワード"),
     "paste": MessageLookupByLibrary.simpleMessage("貼り付け"),
+    "pausePathAnimation": MessageLookupByLibrary.simpleMessage("経路アニメーションを停止"),
     "peers": MessageLookupByLibrary.simpleMessage("ピア"),
     "pickFromAlbum": MessageLookupByLibrary.simpleMessage("アルバムから選択"),
     "pinWindow": MessageLookupByLibrary.simpleMessage("最前面に固定"),
@@ -1428,6 +1450,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "respectRulesDesc": MessageLookupByLibrary.simpleMessage(
       "ルールに従うを有効にすると DNS 接続がルールに従います。Proxy Server Nameserver の設定が必要です。",
     ),
+    "respondingSites": MessageLookupByLibrary.simpleMessage("応答したサイト"),
     "response": MessageLookupByLibrary.simpleMessage("レスポンス"),
     "responseBody": MessageLookupByLibrary.simpleMessage("レスポンスボディ"),
     "responseCode": MessageLookupByLibrary.simpleMessage("応答コード"),
@@ -1442,10 +1465,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "restoreStrategyOverride": MessageLookupByLibrary.simpleMessage("上書き"),
     "restoreSuccess": MessageLookupByLibrary.simpleMessage("復元が完了しました"),
     "result": MessageLookupByLibrary.simpleMessage("結果"),
+    "resumePathAnimation": MessageLookupByLibrary.simpleMessage("経路アニメーションを再開"),
     "retry": MessageLookupByLibrary.simpleMessage("再試行"),
     "root": MessageLookupByLibrary.simpleMessage("Root"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("ルートアドレス"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("ルート除外アドレス"),
+    "routingEngine": MessageLookupByLibrary.simpleMessage("ルーティングエンジン"),
     "routingMark": MessageLookupByLibrary.simpleMessage("ルーティングマーク"),
     "ru": MessageLookupByLibrary.simpleMessage("ロシア語"),
     "rule": MessageLookupByLibrary.simpleMessage("ルール"),
@@ -1592,6 +1617,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "saturation": MessageLookupByLibrary.simpleMessage("彩度"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存しますか？"),
+    "scoreClean": MessageLookupByLibrary.simpleMessage("クリーン"),
+    "scoreNeutral": MessageLookupByLibrary.simpleMessage("中立"),
+    "scorePristine": MessageLookupByLibrary.simpleMessage("非常にクリーン"),
+    "scoreSuspicious": MessageLookupByLibrary.simpleMessage("疑わしい"),
     "script": MessageLookupByLibrary.simpleMessage("スクリプト"),
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "スクリプトモード：拡張スクリプトでプロファイル全体を書き換えます",
@@ -1774,6 +1803,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "transport": MessageLookupByLibrary.simpleMessage("トランスポート"),
     "transportHeaders": m97,
     "trustCertificate": MessageLookupByLibrary.simpleMessage("証明書を信頼"),
+    "trustScore": MessageLookupByLibrary.simpleMessage("信頼スコア"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN の権限を取得できなかったため、オフにしました。",
@@ -1792,6 +1822,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ultra": MessageLookupByLibrary.simpleMessage("最高"),
     "undo": MessageLookupByLibrary.simpleMessage("元に戻す"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("統一遅延"),
+    "uniqueExits": MessageLookupByLibrary.simpleMessage("異なる出口"),
     "unknown": MessageLookupByLibrary.simpleMessage("不明"),
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("不明なネットワークエラー"),
     "unmaximize": MessageLookupByLibrary.simpleMessage("元に戻す"),

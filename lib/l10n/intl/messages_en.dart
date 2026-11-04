@@ -420,6 +420,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockQuic": MessageLookupByLibrary.simpleMessage("Block QUIC"),
     "bodyRewrite": MessageLookupByLibrary.simpleMessage("Body rewrite"),
     "brightness": MessageLookupByLibrary.simpleMessage("Brightness"),
+    "broadcastIp": MessageLookupByLibrary.simpleMessage("Broadcast IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Bypass domains"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Bypass domains apply only while the system proxy is on.",
@@ -467,6 +468,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "The app is already up to date",
     ),
     "cipher": MessageLookupByLibrary.simpleMessage("Cipher"),
+    "claudeAssessmentHint": MessageLookupByLibrary.simpleMessage(
+      "Claude exit · Net.Coffee third-party assessment",
+    ),
+    "claudeExitFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not detect the Claude exit IP",
+    ),
+    "claudeRegionScoreHint": MessageLookupByLibrary.simpleMessage(
+      "Net.Coffee assigns 0 to this region. Actual Claude availability is checked separately.",
+    ),
+    "claudeRestrictedRegion": MessageLookupByLibrary.simpleMessage(
+      "Region restricted",
+    ),
+    "claudeTrustScore": MessageLookupByLibrary.simpleMessage(
+      "Claude trust score",
+    ),
     "clearData": MessageLookupByLibrary.simpleMessage("Clear data"),
     "clearDataAndExitTip": MessageLookupByLibrary.simpleMessage(
       "This deletes all profiles, settings, and local data, then closes the app. Open it again to start fresh.",
@@ -1048,9 +1064,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "installCertificateSuccess": MessageLookupByLibrary.simpleMessage(
       "Certificate installed",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "The app list permission was denied, so installed apps cannot be listed. Please grant it manually in system settings.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "This system hides the installed app list until the permission is granted. Authorize it to configure the per-app proxy.",
     ),
@@ -1115,6 +1132,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipAddress": MessageLookupByLibrary.simpleMessage("IP address"),
     "ipAsn": MessageLookupByLibrary.simpleMessage("ASN"),
     "ipFlagAbuser": MessageLookupByLibrary.simpleMessage("Abuse history"),
+    "ipFlagCrawler": MessageLookupByLibrary.simpleMessage("Crawler"),
     "ipFlagProxy": MessageLookupByLibrary.simpleMessage("Proxy"),
     "ipFlagTor": MessageLookupByLibrary.simpleMessage("Tor"),
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
@@ -1161,6 +1179,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "label": MessageLookupByLibrary.simpleMessage("Label"),
     "language": MessageLookupByLibrary.simpleMessage("Language"),
     "large": MessageLookupByLibrary.simpleMessage("Large"),
+    "lastChecked": MessageLookupByLibrary.simpleMessage("Last checked"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("Last updated"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage(
       "Launch did not finish",
@@ -1409,6 +1428,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nameserverPolicyDesc": MessageLookupByLibrary.simpleMessage(
       "Matching domains use the DNS server given here instead of Nameserver and Fallback.",
     ),
+    "nativeIp": MessageLookupByLibrary.simpleMessage("Native IP"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("Bottom bar"),
     "network": MessageLookupByLibrary.simpleMessage("Network"),
     "networkAccessDeniedError": m67,
@@ -1419,11 +1439,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t connect to the server. Check your network connection or proxy settings",
     ),
+    "networkEntry": MessageLookupByLibrary.simpleMessage("Entry device"),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "Couldn\'t resolve the server address. Check that the URL is correct and DNS is working",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("Network name"),
     "networkNotFoundError": m69,
+    "networkPath": MessageLookupByLibrary.simpleMessage("Network path"),
+    "networkPathHint": MessageLookupByLibrary.simpleMessage(
+      "From this device to the actual exit of each service",
+    ),
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Too many requests (HTTP 429). Wait a moment and try again",
     ),
@@ -1460,6 +1485,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "This external resource is not a text file",
     ),
     "none": MessageLookupByLibrary.simpleMessage("None"),
+    "notDetected": MessageLookupByLibrary.simpleMessage("Not detected"),
     "notRunning": MessageLookupByLibrary.simpleMessage("Not running"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage(
       "The current proxy group cannot be selected",
@@ -1504,6 +1530,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "parsePureIp": MessageLookupByLibrary.simpleMessage("Parse pure IP"),
     "password": MessageLookupByLibrary.simpleMessage("Password"),
     "paste": MessageLookupByLibrary.simpleMessage("Paste"),
+    "pausePathAnimation": MessageLookupByLibrary.simpleMessage(
+      "Pause path animation",
+    ),
     "peers": MessageLookupByLibrary.simpleMessage("Peers"),
     "pickFromAlbum": MessageLookupByLibrary.simpleMessage("Choose from album"),
     "pinWindow": MessageLookupByLibrary.simpleMessage("Pin window"),
@@ -1672,6 +1701,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "respectRulesDesc": MessageLookupByLibrary.simpleMessage(
       "Respect rules routes DNS connections by the rules and needs a Proxy Server Nameserver.",
     ),
+    "respondingSites": MessageLookupByLibrary.simpleMessage("Sites responding"),
     "response": MessageLookupByLibrary.simpleMessage("Response"),
     "responseBody": MessageLookupByLibrary.simpleMessage("Response body"),
     "responseCode": MessageLookupByLibrary.simpleMessage("Response code"),
@@ -1694,12 +1724,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Restore successful",
     ),
     "result": MessageLookupByLibrary.simpleMessage("Result"),
+    "resumePathAnimation": MessageLookupByLibrary.simpleMessage(
+      "Resume path animation",
+    ),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "root": MessageLookupByLibrary.simpleMessage("Root"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Route addresses"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Route exclude addresses",
     ),
+    "routingEngine": MessageLookupByLibrary.simpleMessage("Routing engine"),
     "routingMark": MessageLookupByLibrary.simpleMessage("Routing mark"),
     "ru": MessageLookupByLibrary.simpleMessage("Russian"),
     "rule": MessageLookupByLibrary.simpleMessage("Rule"),
@@ -1856,6 +1890,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "saturation": MessageLookupByLibrary.simpleMessage("Saturation"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save the changes?"),
+    "scoreClean": MessageLookupByLibrary.simpleMessage("Clean"),
+    "scoreNeutral": MessageLookupByLibrary.simpleMessage("Neutral"),
+    "scorePristine": MessageLookupByLibrary.simpleMessage("Pristine"),
+    "scoreSuspicious": MessageLookupByLibrary.simpleMessage("Suspicious"),
     "script": MessageLookupByLibrary.simpleMessage("Script"),
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "Script mode: rewrites the whole profile with an extension script",
@@ -2070,6 +2108,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "trustCertificate": MessageLookupByLibrary.simpleMessage(
       "Trust certificate",
     ),
+    "trustScore": MessageLookupByLibrary.simpleMessage("Trust score"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "TUN could not be authorized, so it was turned off.",
@@ -2090,6 +2129,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ultra": MessageLookupByLibrary.simpleMessage("Ultra"),
     "undo": MessageLookupByLibrary.simpleMessage("Undo"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("Unified delay"),
+    "uniqueExits": MessageLookupByLibrary.simpleMessage("Unique exits"),
     "unknown": MessageLookupByLibrary.simpleMessage("Unknown"),
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage(
       "Unknown network error",

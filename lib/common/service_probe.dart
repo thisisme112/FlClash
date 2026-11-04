@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/core/controller.dart';
@@ -198,6 +199,18 @@ IpInfo? parseOutboundIp(OutboundIpResult result) {
   } on FormatException {
     return null;
   } on TypeError {
+    return null;
+  }
+}
+
+const claudeTraceUrl = 'https://claude.ai/cdn-cgi/trace';
+
+IpInfo? parseClaudeOutboundIp(OutboundIpResult result) {
+  if (result.url != claudeTraceUrl || result.error != null) return null;
+  try {
+    final info = IpInfo.fromCloudflareTrace(result.body);
+    return InternetAddress.tryParse(info.ip) == null ? null : info;
+  } on FormatException {
     return null;
   }
 }

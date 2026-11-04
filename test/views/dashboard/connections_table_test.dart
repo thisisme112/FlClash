@@ -78,7 +78,10 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: const TestApp(
-          child: DashboardView(platform: SupportPlatform.MacOS),
+          child: DashboardView(
+            initialNetworkPath: false,
+            platform: SupportPlatform.MacOS,
+          ),
         ),
       ),
     );

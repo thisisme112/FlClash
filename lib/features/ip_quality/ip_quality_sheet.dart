@@ -165,8 +165,14 @@ class _IpQualityDetail extends ConsumerWidget {
       if (quality.isAbuser) localizations.ipFlagAbuser,
       if (quality.isVpn) localizations.ipFlagVpn,
       if (quality.isProxy) localizations.ipFlagProxy,
+      if (quality.isCrawler) localizations.ipFlagCrawler,
     ];
     return [
+      if (quality.trustScore case final score?)
+        DetailRow(
+          title: localizations.trustScore,
+          value: Text('$score / 100 · ${trustScoreLabel(context, score)}'),
+        ),
       DetailRow(
         title: localizations.ipQualityLevel,
         value: Text(

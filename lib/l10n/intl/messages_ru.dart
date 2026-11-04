@@ -438,6 +438,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockQuic": MessageLookupByLibrary.simpleMessage("Блокировать QUIC"),
     "bodyRewrite": MessageLookupByLibrary.simpleMessage("Перезапись тела"),
     "brightness": MessageLookupByLibrary.simpleMessage("Яркость"),
+    "broadcastIp": MessageLookupByLibrary.simpleMessage("Широковещательный IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Исключённые домены"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "Исключённые домены действуют только при включённом системном прокси.",
@@ -487,6 +488,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "У вас уже последняя версия",
     ),
     "cipher": MessageLookupByLibrary.simpleMessage("Шифр"),
+    "claudeAssessmentHint": MessageLookupByLibrary.simpleMessage(
+      "Выход Claude · сторонняя оценка Net.Coffee",
+    ),
+    "claudeExitFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось определить выходной IP Claude",
+    ),
+    "claudeRegionScoreHint": MessageLookupByLibrary.simpleMessage(
+      "Net.Coffee присваивает этому региону 0 баллов. Доступность Claude проверяется отдельно.",
+    ),
+    "claudeRestrictedRegion": MessageLookupByLibrary.simpleMessage(
+      "Регион ограничен",
+    ),
+    "claudeTrustScore": MessageLookupByLibrary.simpleMessage(
+      "Оценка доверия Claude",
+    ),
     "clearData": MessageLookupByLibrary.simpleMessage("Очистить данные"),
     "clearDataAndExitTip": MessageLookupByLibrary.simpleMessage(
       "Все профили, настройки и локальные данные будут удалены, после чего приложение закроется. Откройте его снова, чтобы начать заново.",
@@ -1096,9 +1112,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "installCertificateSuccess": MessageLookupByLibrary.simpleMessage(
       "Сертификат установлен",
     ),
-    "installedAppsPermissionDeniedMessage": MessageLookupByLibrary.simpleMessage(
-      "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
-    ),
+    "installedAppsPermissionDeniedMessage":
+        MessageLookupByLibrary.simpleMessage(
+          "Разрешение на список приложений отклонено, поэтому установленные приложения недоступны. Предоставьте его вручную в системных настройках.",
+        ),
     "installedAppsPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Эта система не выдаёт список установленных приложений без разрешения. Предоставьте его, чтобы настроить прокси для отдельных приложений.",
     ),
@@ -1163,6 +1180,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipAddress": MessageLookupByLibrary.simpleMessage("IP-адрес"),
     "ipAsn": MessageLookupByLibrary.simpleMessage("ASN"),
     "ipFlagAbuser": MessageLookupByLibrary.simpleMessage("Злоупотребления"),
+    "ipFlagCrawler": MessageLookupByLibrary.simpleMessage("Краулер"),
     "ipFlagProxy": MessageLookupByLibrary.simpleMessage("Прокси"),
     "ipFlagTor": MessageLookupByLibrary.simpleMessage("Tor"),
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
@@ -1211,6 +1229,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "label": MessageLookupByLibrary.simpleMessage("Метка"),
     "language": MessageLookupByLibrary.simpleMessage("Язык"),
     "large": MessageLookupByLibrary.simpleMessage("Крупный"),
+    "lastChecked": MessageLookupByLibrary.simpleMessage("Последняя проверка"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("Последнее обновление"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage(
       "Запуск не завершён",
@@ -1481,6 +1500,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nameserverPolicyDesc": MessageLookupByLibrary.simpleMessage(
       "Совпавшие домены используют указанный здесь DNS-сервер вместо Nameserver и Fallback.",
     ),
+    "nativeIp": MessageLookupByLibrary.simpleMessage("Нативный IP"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("Нижняя панель"),
     "network": MessageLookupByLibrary.simpleMessage("Сеть"),
     "networkAccessDeniedError": m67,
@@ -1491,11 +1511,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "Не удалось подключиться к серверу. Проверьте подключение к сети или настройки прокси",
     ),
+    "networkEntry": MessageLookupByLibrary.simpleMessage("Исходное устройство"),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "Не удалось определить адрес сервера. Проверьте правильность URL и работу DNS",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("Имя сети"),
     "networkNotFoundError": m69,
+    "networkPath": MessageLookupByLibrary.simpleMessage("Сетевой путь"),
+    "networkPathHint": MessageLookupByLibrary.simpleMessage(
+      "От устройства до фактического выхода каждого сервиса",
+    ),
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "Слишком много запросов (HTTP 429). Подождите немного и повторите попытку",
     ),
@@ -1532,6 +1557,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Этот внешний ресурс не является текстовым файлом",
     ),
     "none": MessageLookupByLibrary.simpleMessage("Нет"),
+    "notDetected": MessageLookupByLibrary.simpleMessage("Не обнаружено"),
     "notRunning": MessageLookupByLibrary.simpleMessage("Не запущено"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage(
       "Текущую группу прокси нельзя выбрать",
@@ -1578,6 +1604,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "parsePureIp": MessageLookupByLibrary.simpleMessage("Разбирать чистые IP"),
     "password": MessageLookupByLibrary.simpleMessage("Пароль"),
     "paste": MessageLookupByLibrary.simpleMessage("Вставить"),
+    "pausePathAnimation": MessageLookupByLibrary.simpleMessage(
+      "Приостановить анимацию маршрутов",
+    ),
     "peers": MessageLookupByLibrary.simpleMessage("Пиры"),
     "pickFromAlbum": MessageLookupByLibrary.simpleMessage("Выбрать из галереи"),
     "pinWindow": MessageLookupByLibrary.simpleMessage(
@@ -1752,6 +1781,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "respectRulesDesc": MessageLookupByLibrary.simpleMessage(
       "«Соблюдать правила» направляет DNS-соединения по правилам; нужен Proxy Server Nameserver.",
     ),
+    "respondingSites": MessageLookupByLibrary.simpleMessage("Ответившие сайты"),
     "response": MessageLookupByLibrary.simpleMessage("Ответ"),
     "responseBody": MessageLookupByLibrary.simpleMessage("Тело ответа"),
     "responseCode": MessageLookupByLibrary.simpleMessage("Код ответа"),
@@ -1780,12 +1810,16 @@ class MessageLookup extends MessageLookupByLibrary {
       "Восстановление выполнено",
     ),
     "result": MessageLookupByLibrary.simpleMessage("Результат"),
+    "resumePathAnimation": MessageLookupByLibrary.simpleMessage(
+      "Возобновить анимацию маршрутов",
+    ),
     "retry": MessageLookupByLibrary.simpleMessage("Повторить"),
     "root": MessageLookupByLibrary.simpleMessage("Root"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("Адреса маршрутов"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage(
       "Исключённые адреса маршрутов",
     ),
+    "routingEngine": MessageLookupByLibrary.simpleMessage("Маршрутизация"),
     "routingMark": MessageLookupByLibrary.simpleMessage("Метка маршрутизации"),
     "ru": MessageLookupByLibrary.simpleMessage("Русский"),
     "rule": MessageLookupByLibrary.simpleMessage("Правило"),
@@ -1952,6 +1986,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "saturation": MessageLookupByLibrary.simpleMessage("Насыщенность"),
     "save": MessageLookupByLibrary.simpleMessage("Сохранить"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Сохранить изменения?"),
+    "scoreClean": MessageLookupByLibrary.simpleMessage("Чистый"),
+    "scoreNeutral": MessageLookupByLibrary.simpleMessage("Нейтральный"),
+    "scorePristine": MessageLookupByLibrary.simpleMessage("Безупречный"),
+    "scoreSuspicious": MessageLookupByLibrary.simpleMessage("Подозрительный"),
     "script": MessageLookupByLibrary.simpleMessage("Скрипт"),
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage(
       "Режим скрипта: переписывает весь профиль скриптом расширения",
@@ -2178,6 +2216,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "trustCertificate": MessageLookupByLibrary.simpleMessage(
       "Доверять сертификату",
     ),
+    "trustScore": MessageLookupByLibrary.simpleMessage("Оценка доверия"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "Не удалось получить права для TUN, поэтому он выключен.",
@@ -2200,6 +2239,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ultra": MessageLookupByLibrary.simpleMessage("Максимум"),
     "undo": MessageLookupByLibrary.simpleMessage("Отменить"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("Единая задержка"),
+    "uniqueExits": MessageLookupByLibrary.simpleMessage("Уникальные выходы"),
     "unknown": MessageLookupByLibrary.simpleMessage("Неизвестно"),
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage(
       "Неизвестная сетевая ошибка",

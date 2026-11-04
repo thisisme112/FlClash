@@ -34,7 +34,9 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: TestApp(child: DashboardView(platform: platform)),
+        child: TestApp(
+          child: DashboardView(initialNetworkPath: false, platform: platform),
+        ),
       ),
     );
     await tester.pump();

@@ -467,7 +467,7 @@ enum DashboardWidget {
 
 enum DnsQueryInitiator { app, rule, direct, proxy, other }
 
-enum IpType { residential, mobile, business, hosting }
+enum IpType { residential, mobile, business, hosting, unknown }
 
 enum IpQualityLevel { good, normal, risky }
 
@@ -477,7 +477,8 @@ enum IpQualitySource {
   ipQuery('ipquery.io'),
   ipLocate('iplocate.io'),
   proxyCheck('proxycheck.io'),
-  ipApiIs('ipapi.is');
+  ipApiIs('ipapi.is'),
+  netCoffee('Net.Coffee');
 
   const IpQualitySource(this.label);
 

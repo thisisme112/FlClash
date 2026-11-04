@@ -75,6 +75,7 @@ class _Adapter implements HttpClientAdapter {
   Map<String, _Reply> replies, {
   Duration timeout = const Duration(seconds: 8),
   Duration hedge = const Duration(seconds: 1),
+  IpQualitySource? source,
 }) {
   final adapter = _Adapter(replies);
   final dio = Dio()..httpClientAdapter = adapter;
@@ -87,11 +88,90 @@ class _Adapter implements HttpClientAdapter {
       cancelToken: CancelToken(),
       timeout: timeout,
       hedge: hedge,
+      source: source,
     ),
   );
 }
 
 void main() {
+  test(
+    'Net.Coffee returns its score and flags without querying legacy sources',
+    () async {
+      final lookup = _lookup({
+        'ip.net.coffee': _ok({
+          'ip': _ip,
+          'trust_score': 74,
+          'is_datacenter': true,
+          'company_type': 'hosting',
+          'company_name': 'Example Transit',
+          'asn': 64500,
+          'country': 'Japan',
+          'countryCode': 'jp',
+          'is_proxy': true,
+          'is_crawler': true,
+        }),
+      }, source: IpQualitySource.netCoffee);
+      final quality = await lookup.result;
+      expect(quality.trustScore, 74);
+      expect(quality.source, IpQualitySource.netCoffee);
+      expect(quality.type, IpType.hosting);
+      expect(quality.countryCode, 'JP');
+      expect(quality.isProxy, isTrue);
+      expect(quality.isCrawler, isTrue);
+      expect(quality.reportedFlags, ['is_proxy', 'is_crawler']);
+      expect(lookup.adapter.requested.map((uri) => uri.host), [
+        'ip.net.coffee',
+      ]);
+      expect(lookup.adapter.requested.single.path, '/api/iprisk/$_ip');
+    },
+  );
+
+  test('Net.Coffee rejects a response for another IP', () async {
+    final lookup = _lookup({
+      'ip.net.coffee': _ok({'ip': '203.0.113.10', 'trust_score': 99}),
+    }, source: IpQualitySource.netCoffee);
+    await expectLater(
+      lookup.result,
+      throwsA(
+        isA<IpQualityLookupException>().having(
+          (error) => error.failures.single.status,
+          'status',
+          IpQualitySourceStatus.ipMismatch,
+        ),
+      ),
+    );
+  });
+
+  test('Net.Coffee matches equivalent IPv6 spellings', () async {
+    final adapter = _Adapter({
+      'ip.net.coffee': _ok({'ip': '2001:db8:0:0:0:0:0:1', 'trust_score': 80}),
+    });
+    final dio = Dio()..httpClientAdapter = adapter;
+    addTearDown(dio.close);
+    final quality = await lookupIpQuality(
+      dio,
+      '2001:db8::1',
+      cancelToken: CancelToken(),
+      source: IpQualitySource.netCoffee,
+    );
+    expect(quality.ip, '2001:db8::1');
+    expect(quality.trustScore, 80);
+    expect(quality.type, IpType.unknown);
+    expect(quality.reportedFlags, isEmpty);
+  });
+
+  test('Net.Coffee never synthesizes a missing or invalid score', () async {
+    for (final score in [null, -1, 101, '74']) {
+      final lookup = _lookup({
+        'ip.net.coffee': _ok({'ip': _ip, 'trust_score': score}),
+      }, source: IpQualitySource.netCoffee);
+      await expectLater(
+        lookup.result,
+        throwsA(isA<IpQualityLookupException>()),
+      );
+    }
+  });
+
   final samples = <IpQualitySource, (Object, IpQuality)>{
     IpQualitySource.identMe: (
       {

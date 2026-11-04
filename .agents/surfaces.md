@@ -1,5 +1,14 @@
 # Surfaces
 
+The shared app theme now follows the Vantage reference: neutral light and dark palettes from
+`lib/ui/vantage.dart`, a blue default accent, compact superellipse corners, and thin neutral outlines on
+dashboard panels. The network-path overview uses a static dot backdrop and categorical route wires;
+its status, addresses and Net.Coffee trust scores come from the existing probes. Missing results stay
+pending or unknown. The previous metrics dashboard remains available through the view switch.
+This requested visual direction permits the panel outlines below; retain the existing interaction,
+selection and semantic status conventions. Pure-black, custom accents and the explicitly tinted
+theme remain available. Reference: https://github.com/anothaDev/luci-theme-vantage.
+
 FlClash draws structure with fills and keeps color for state. A surface stands out from what it sits on by a step in
 lightness, never by a border. Color appears where something is selected, on, failing, or the one action a screen is
 for. The dashboard set this direction; every other screen follows it, and components give up tonal container fills.

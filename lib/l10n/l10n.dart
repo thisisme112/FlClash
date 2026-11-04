@@ -7663,8 +7663,7 @@ class AppLocalizations {
   String customImportDroppedSubRules(num count, Object label) {
     return Intl.plural(
       count,
-      one:
-          '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
+      one: '1 SUB-RULE rule was dropped, since custom profiles do not support sub-rules',
       other:
           '$label SUB-RULE rules were dropped, since custom profiles do not support sub-rules',
       name: 'customImportDroppedSubRules',
@@ -9068,6 +9067,206 @@ class AppLocalizations {
     return Intl.message(
       'These domains are resolved by Fallback directly.',
       name: 'fallbackFilterDomainDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Network path`
+  String get networkPath {
+    return Intl.message(
+      'Network path',
+      name: 'networkPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `From this device to the actual exit of each service`
+  String get networkPathHint {
+    return Intl.message(
+      'From this device to the actual exit of each service',
+      name: 'networkPathHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Entry device`
+  String get networkEntry {
+    return Intl.message(
+      'Entry device',
+      name: 'networkEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Routing engine`
+  String get routingEngine {
+    return Intl.message(
+      'Routing engine',
+      name: 'routingEngine',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sites responding`
+  String get respondingSites {
+    return Intl.message(
+      'Sites responding',
+      name: 'respondingSites',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unique exits`
+  String get uniqueExits {
+    return Intl.message(
+      'Unique exits',
+      name: 'uniqueExits',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last checked`
+  String get lastChecked {
+    return Intl.message(
+      'Last checked',
+      name: 'lastChecked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trust score`
+  String get trustScore {
+    return Intl.message('Trust score', name: 'trustScore', desc: '', args: []);
+  }
+
+  /// `Pristine`
+  String get scorePristine {
+    return Intl.message('Pristine', name: 'scorePristine', desc: '', args: []);
+  }
+
+  /// `Clean`
+  String get scoreClean {
+    return Intl.message('Clean', name: 'scoreClean', desc: '', args: []);
+  }
+
+  /// `Neutral`
+  String get scoreNeutral {
+    return Intl.message('Neutral', name: 'scoreNeutral', desc: '', args: []);
+  }
+
+  /// `Suspicious`
+  String get scoreSuspicious {
+    return Intl.message(
+      'Suspicious',
+      name: 'scoreSuspicious',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Crawler`
+  String get ipFlagCrawler {
+    return Intl.message('Crawler', name: 'ipFlagCrawler', desc: '', args: []);
+  }
+
+  /// `Native IP`
+  String get nativeIp {
+    return Intl.message('Native IP', name: 'nativeIp', desc: '', args: []);
+  }
+
+  /// `Broadcast IP`
+  String get broadcastIp {
+    return Intl.message(
+      'Broadcast IP',
+      name: 'broadcastIp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not detected`
+  String get notDetected {
+    return Intl.message(
+      'Not detected',
+      name: 'notDetected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Claude trust score`
+  String get claudeTrustScore {
+    return Intl.message(
+      'Claude trust score',
+      name: 'claudeTrustScore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Claude exit · Net.Coffee third-party assessment`
+  String get claudeAssessmentHint {
+    return Intl.message(
+      'Claude exit · Net.Coffee third-party assessment',
+      name: 'claudeAssessmentHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Region restricted`
+  String get claudeRestrictedRegion {
+    return Intl.message(
+      'Region restricted',
+      name: 'claudeRestrictedRegion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Net.Coffee assigns 0 to this region. Actual Claude availability is checked separately.`
+  String get claudeRegionScoreHint {
+    return Intl.message(
+      'Net.Coffee assigns 0 to this region. Actual Claude availability is checked separately.',
+      name: 'claudeRegionScoreHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pause path animation`
+  String get pausePathAnimation {
+    return Intl.message(
+      'Pause path animation',
+      name: 'pausePathAnimation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resume path animation`
+  String get resumePathAnimation {
+    return Intl.message(
+      'Resume path animation',
+      name: 'resumePathAnimation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not detect the Claude exit IP`
+  String get claudeExitFailed {
+    return Intl.message(
+      'Could not detect the Claude exit IP',
+      name: 'claudeExitFailed',
       desc: '',
       args: [],
     );

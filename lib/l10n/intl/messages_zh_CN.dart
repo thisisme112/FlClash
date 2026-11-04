@@ -347,6 +347,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "blockQuic": MessageLookupByLibrary.simpleMessage("阻止 QUIC"),
     "bodyRewrite": MessageLookupByLibrary.simpleMessage("Body 重写"),
     "brightness": MessageLookupByLibrary.simpleMessage("亮度"),
+    "broadcastIp": MessageLookupByLibrary.simpleMessage("广播 IP"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("排除域名"),
     "bypassDomainDesc": MessageLookupByLibrary.simpleMessage(
       "排除域名仅在系统代理启用时生效。",
@@ -380,6 +381,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "checkUpdate": MessageLookupByLibrary.simpleMessage("检查更新"),
     "checkUpdateError": MessageLookupByLibrary.simpleMessage("当前应用已经是最新版了"),
     "cipher": MessageLookupByLibrary.simpleMessage("加密方式"),
+    "claudeAssessmentHint": MessageLookupByLibrary.simpleMessage(
+      "Claude 出口 · Net.Coffee 第三方评估",
+    ),
+    "claudeExitFailed": MessageLookupByLibrary.simpleMessage(
+      "未获取到 Claude 出口 IP",
+    ),
+    "claudeRegionScoreHint": MessageLookupByLibrary.simpleMessage(
+      "Net.Coffee 对此地区按 0 分展示，Claude 实际可用性单独检测。",
+    ),
+    "claudeRestrictedRegion": MessageLookupByLibrary.simpleMessage("地区受限"),
+    "claudeTrustScore": MessageLookupByLibrary.simpleMessage("Claude 信任评分"),
     "clearData": MessageLookupByLibrary.simpleMessage("清除数据"),
     "clearDataAndExitTip": MessageLookupByLibrary.simpleMessage(
       "将删除所有配置、设置和本地数据，随后关闭应用。重新打开即可从头开始。",
@@ -867,6 +879,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ipAddress": MessageLookupByLibrary.simpleMessage("IP 地址"),
     "ipAsn": MessageLookupByLibrary.simpleMessage("ASN"),
     "ipFlagAbuser": MessageLookupByLibrary.simpleMessage("滥用记录"),
+    "ipFlagCrawler": MessageLookupByLibrary.simpleMessage("爬虫"),
     "ipFlagProxy": MessageLookupByLibrary.simpleMessage("代理"),
     "ipFlagTor": MessageLookupByLibrary.simpleMessage("Tor"),
     "ipFlagVpn": MessageLookupByLibrary.simpleMessage("VPN"),
@@ -903,6 +916,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "label": MessageLookupByLibrary.simpleMessage("标签"),
     "language": MessageLookupByLibrary.simpleMessage("语言"),
     "large": MessageLookupByLibrary.simpleMessage("大"),
+    "lastChecked": MessageLookupByLibrary.simpleMessage("最近检测"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("上次更新"),
     "launchInterrupted": MessageLookupByLibrary.simpleMessage("启动未完成"),
     "launchInterruptedTip": MessageLookupByLibrary.simpleMessage(
@@ -1093,6 +1107,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nameserverPolicyDesc": MessageLookupByLibrary.simpleMessage(
       "匹配的域名改用此处指定的 DNS 服务器，优先于 Nameserver 和 Fallback。",
     ),
+    "nativeIp": MessageLookupByLibrary.simpleMessage("原生 IP"),
     "navigationBarStyle": MessageLookupByLibrary.simpleMessage("底栏"),
     "network": MessageLookupByLibrary.simpleMessage("网络"),
     "networkAccessDeniedError": m67,
@@ -1101,11 +1116,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "networkConnectionError": MessageLookupByLibrary.simpleMessage(
       "无法连接到服务器，请检查网络连接或代理设置",
     ),
+    "networkEntry": MessageLookupByLibrary.simpleMessage("检测入口"),
     "networkHostLookupError": MessageLookupByLibrary.simpleMessage(
       "无法解析服务器地址，请确认链接正确且 DNS 可用",
     ),
     "networkName": MessageLookupByLibrary.simpleMessage("网络名称"),
     "networkNotFoundError": m69,
+    "networkPath": MessageLookupByLibrary.simpleMessage("网络路径"),
+    "networkPathHint": MessageLookupByLibrary.simpleMessage(
+      "从当前设备，到各站点实际使用的出口",
+    ),
     "networkRateLimitedError": MessageLookupByLibrary.simpleMessage(
       "请求过于频繁（HTTP 429），请稍后再试",
     ),
@@ -1134,6 +1154,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nodes": MessageLookupByLibrary.simpleMessage("节点"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage("该外部资源不是文本文件"),
     "none": MessageLookupByLibrary.simpleMessage("无"),
+    "notDetected": MessageLookupByLibrary.simpleMessage("未见"),
     "notRunning": MessageLookupByLibrary.simpleMessage("未运行"),
     "notSelectedTip": MessageLookupByLibrary.simpleMessage("当前代理组无法选中"),
     "ntpInterval": MessageLookupByLibrary.simpleMessage("同步间隔（分钟）"),
@@ -1164,6 +1185,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "parsePureIp": MessageLookupByLibrary.simpleMessage("解析纯IP"),
     "password": MessageLookupByLibrary.simpleMessage("密码"),
     "paste": MessageLookupByLibrary.simpleMessage("粘贴"),
+    "pausePathAnimation": MessageLookupByLibrary.simpleMessage("暂停路径动画"),
     "peers": MessageLookupByLibrary.simpleMessage("初始节点"),
     "pickFromAlbum": MessageLookupByLibrary.simpleMessage("从相册选择"),
     "pinWindow": MessageLookupByLibrary.simpleMessage("窗口置顶"),
@@ -1300,6 +1322,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "respectRulesDesc": MessageLookupByLibrary.simpleMessage(
       "遵守规则使 DNS 连接遵守规则，需配置 Proxy Server Nameserver。",
     ),
+    "respondingSites": MessageLookupByLibrary.simpleMessage("站点响应"),
     "response": MessageLookupByLibrary.simpleMessage("响应"),
     "responseBody": MessageLookupByLibrary.simpleMessage("响应体"),
     "responseCode": MessageLookupByLibrary.simpleMessage("响应码"),
@@ -1314,10 +1337,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "restoreStrategyOverride": MessageLookupByLibrary.simpleMessage("覆盖"),
     "restoreSuccess": MessageLookupByLibrary.simpleMessage("恢复成功"),
     "result": MessageLookupByLibrary.simpleMessage("结果"),
+    "resumePathAnimation": MessageLookupByLibrary.simpleMessage("恢复路径动画"),
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "root": MessageLookupByLibrary.simpleMessage("Root"),
     "routeAddress": MessageLookupByLibrary.simpleMessage("路由地址"),
     "routeExcludeAddress": MessageLookupByLibrary.simpleMessage("排除路由地址"),
+    "routingEngine": MessageLookupByLibrary.simpleMessage("分流引擎"),
     "routingMark": MessageLookupByLibrary.simpleMessage("路由标记"),
     "ru": MessageLookupByLibrary.simpleMessage("俄语"),
     "rule": MessageLookupByLibrary.simpleMessage("规则"),
@@ -1442,6 +1467,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "saturation": MessageLookupByLibrary.simpleMessage("饱和度"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("是否保存更改？"),
+    "scoreClean": MessageLookupByLibrary.simpleMessage("纯净"),
+    "scoreNeutral": MessageLookupByLibrary.simpleMessage("中性"),
+    "scorePristine": MessageLookupByLibrary.simpleMessage("极度纯净"),
+    "scoreSuspicious": MessageLookupByLibrary.simpleMessage("可疑"),
     "script": MessageLookupByLibrary.simpleMessage("脚本"),
     "scriptModeDesc": MessageLookupByLibrary.simpleMessage("脚本模式，使用扩展脚本改写整个配置"),
     "scrollToSelected": MessageLookupByLibrary.simpleMessage("滚动到已选"),
@@ -1604,6 +1633,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "transport": MessageLookupByLibrary.simpleMessage("传输协议"),
     "transportHeaders": m97,
     "trustCertificate": MessageLookupByLibrary.simpleMessage("信任证书"),
+    "trustScore": MessageLookupByLibrary.simpleMessage("信任评分"),
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunAuthorizationFailed": MessageLookupByLibrary.simpleMessage(
       "虚拟网卡授权失败，已关闭。",
@@ -1622,6 +1652,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "ultra": MessageLookupByLibrary.simpleMessage("极致"),
     "undo": MessageLookupByLibrary.simpleMessage("撤销"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("统一延迟"),
+    "uniqueExits": MessageLookupByLibrary.simpleMessage("独立出口"),
     "unknown": MessageLookupByLibrary.simpleMessage("未知"),
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("未知网络错误"),
     "unmaximize": MessageLookupByLibrary.simpleMessage("向下还原"),

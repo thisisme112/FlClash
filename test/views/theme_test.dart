@@ -88,7 +88,7 @@ void main() {
           .update((_) => defaultThemeProps);
       await pumpThemeView(tester);
 
-      expect(readTheme().primaryColor, 0xFF007AFF);
+      expect(readTheme().primaryColor, 0xFF3563E9);
       for (final color in defaultPrimaryColors) {
         expect(swatch(color), findsOneWidget);
       }
@@ -170,16 +170,16 @@ void main() {
       tester,
     ) async {
       await pumpThemeView(tester);
-      await tester.tap(swatch(0xFF007AFF));
+      await tester.tap(swatch(0xFF3563E9));
       await tester.pumpAndSettle();
       final count = readTheme().primaryColors.length;
 
-      await editColor(tester, 0xFFCB30E0, '007AFF');
+      await editColor(tester, 0xFFCB30E0, '3563E9');
 
       expect(readTheme().primaryColors, hasLength(count - 1));
       expect(readTheme().primaryColors, isNot(contains(0xFFCB30E0)));
-      expect(readTheme().primaryColor, 0xFF007AFF);
-      expect(swatch(0xFF007AFF), findsOneWidget);
+      expect(readTheme().primaryColor, 0xFF3563E9);
+      expect(swatch(0xFF3563E9), findsOneWidget);
     });
 
     testWidgets('adds a custom color once and selects it', (tester) async {

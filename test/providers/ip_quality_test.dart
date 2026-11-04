@@ -29,10 +29,14 @@ class _Adapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests++;
-    if (succeed && options.uri.host == 'iplocate.io') {
+    if (succeed && options.uri.host == 'ip.net.coffee') {
       return ResponseBody.fromString(
         jsonEncode({
-          'asn': {'asn': 'AS64500', 'type': 'isp'},
+          'ip': _ip,
+          'asn': 64500,
+          'company_type': 'isp',
+          'isResidential': true,
+          'trust_score': 74,
         }),
         200,
       );
@@ -46,8 +50,9 @@ class _Adapter implements HttpClientAdapter {
 
 const _saved = IpQuality(
   ip: _ip,
-  source: IpQualitySource.proxyCheck,
+  source: IpQualitySource.netCoffee,
   type: IpType.hosting,
+  trustScore: 46,
 );
 
 void main() {
@@ -167,6 +172,21 @@ void main() {
 
     expect(await container.read(provider.future), _saved);
     expect(adapter.requests, 0);
+  });
+
+  test('replaces a cached legacy result with a Net.Coffee lookup', () async {
+    await testDatabase.ipQualitiesDao.put(
+      _saved.copyWith(source: IpQualitySource.proxyCheck, trustScore: null),
+      DateTime.now(),
+      const Duration(days: 3),
+    );
+    final adapter = _Adapter(succeed: true);
+    final container = build(adapter);
+    container.listen(provider, (_, _) {});
+    final quality = await container.read(provider.future);
+    expect(quality.source, IpQualitySource.netCoffee);
+    expect(quality.trustScore, 74);
+    expect(adapter.requests, 1);
   });
 
   test('saves a lookup for the next run', () async {
