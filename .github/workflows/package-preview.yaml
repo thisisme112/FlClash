@@ -88,11 +88,19 @@ jobs:
           git rev-parse HEAD | Out-File dist/build-source.txt -Encoding utf8
           Get-ChildItem dist -Recurse -File | Select-Object Name, Length
       - uses: actions/upload-artifact@v4
+        id: packages
         with:
           name: FlClash-vantage-windows-x64
           path: dist/
           if-no-files-found: error
           retention-days: 90
+      - name: Add a download link to the build summary
+        env:
+          PACKAGE_ARTIFACT: ${{ steps.packages.outputs.artifact-id }}
+        shell: pwsh
+        run: |
+          $url = "https://nightly.link/${env:GITHUB_REPOSITORY}/actions/artifacts/${env:PACKAGE_ARTIFACT}.zip"
+          "[Windows x64 installer and portable ZIP — download without login]($url)" | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
   android:
     name: Android ARM64 APK
@@ -162,8 +170,14 @@ jobs:
             echo 'Signed using the Android debug key. Application ID: com.follow.clash.dev' > dist/android-signing.txt
           fi
       - uses: actions/upload-artifact@v4
+        id: packages
         with:
           name: FlClash-vantage-android-arm64
           path: dist/
           if-no-files-found: error
           retention-days: 90
+      - name: Add a download link to the build summary
+        env:
+          PACKAGE_ARTIFACT: ${{ steps.packages.outputs.artifact-id }}
+        run: |
+          echo "[Android ARM64 APK — download without login](https://nightly.link/$GITHUB_REPOSITORY/actions/artifacts/$PACKAGE_ARTIFACT.zip)" >> "$GITHUB_STEP_SUMMARY"

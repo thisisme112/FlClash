@@ -15,9 +15,11 @@ Automatic repairs cover regenerated localization/model/provider output, formatti
 and Dart's supported fixes. A repaired source is committed only after analysis and
 the root tests pass. The shared packaging workflow then compiles Windows x64 and
 Android ARM64 from the exact verified source commit. Build artifacts include that
-commit and are retained for 90 days.
+commit and are retained for 90 days. Each job summary contains a public
+nightly.link download URL for its exact artifact ID.
 
-`build-recovery.yaml` reads failed Actions steps directly and retries a clearly
+`build-recovery.yaml` reads completed job logs from the Actions API and selects
+the failed step by its timestamps and retries a clearly
 temporary infrastructure failure once. Source conflicts, compiler errors, access
 denials and repeated failures retain diagnostics and stop. There is no mailbox
 reader or unattended AI code editor in this setup.

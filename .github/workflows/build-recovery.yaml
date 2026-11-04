@@ -14,7 +14,7 @@ permissions:
 jobs:
   inspect:
     if: >-
-      github.event.workflow_run.conclusion == 'failure' &&
+      contains(fromJSON('["failure", "timed_out", "startup_failure"]'), github.event.workflow_run.conclusion) &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.head_branch == github.event.repository.default_branch ||
        startsWith(github.event.workflow_run.head_branch, 'build/vantage-packages/'))
@@ -30,8 +30,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           FAILED_RUN: ${{ github.event.workflow_run.id }}
         run: |
-          mkdir -p diagnostics
-          gh run view "$FAILED_RUN" --repo "$GH_REPO" --log-failed > diagnostics/failed-steps.log
+          python3 tool/build_recovery.py --collect --repo "$GH_REPO" --run "$FAILED_RUN" --output diagnostics/failed-steps.log
       - name: Classify the failure
         id: classify
         run: python3 tool/build_recovery.py diagnostics/failed-steps.log

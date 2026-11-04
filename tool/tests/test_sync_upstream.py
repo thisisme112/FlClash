@@ -45,6 +45,26 @@ class DataMergeTests(unittest.TestCase):
         for log in ['HTTP Error 403', 'HTTP Error 404', 'Unknown build failure', 'CONFLICT (content): Merge conflict; curl: (56)', 'lib/view.dart:12:7: Error: Type not found\nConnection reset']:
             self.assertFalse(recovery.is_transient_failure(log))
 
+    def test_only_the_failed_step_is_classified(self):
+        job = {'steps': [{'conclusion': 'failure', 'started_at': '2026-11-04T12:00:10Z', 'completed_at': '2026-11-04T12:00:20Z'}]}
+        log = '2026-11-04T12:00:00.000Z A passing test prints Connection reset\n2026-11-04T12:00:15.000Z Unknown source failure\n'
+        failed = recovery.failed_step_log(job, log)
+        self.assertNotIn('Connection reset', failed)
+        self.assertFalse(recovery.is_transient_failure(failed))
+
+    def test_direct_job_log_collection_retains_actual_errors(self):
+        job = {'id': 123, 'name': 'Windows installer', 'conclusion': 'failure', 'steps': []}
+        def api(endpoint):
+            if endpoint.endswith('/jobs?per_page=100'):
+                return json.dumps({'jobs': [job]}).encode()
+            self.assertTrue(endpoint.endswith('/jobs/123/logs'))
+            return b'CONFLICT (content): Merge conflict in lib/view.dart\n'
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / 'failed.log'
+            recovery.collect_failed_logs('example/repo', 123, destination, api=api)
+            self.assertIn('CONFLICT', destination.read_text())
+            self.assertFalse(recovery.is_transient_failure(destination.read_text()))
+
 
 class GitMergeTests(unittest.TestCase):
     def setUp(self):
