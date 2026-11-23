@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 def load_module(name):
@@ -55,13 +56,14 @@ class DataMergeTests(unittest.TestCase):
     def test_direct_job_log_collection_retains_actual_errors(self):
         job = {'id': 123, 'name': 'Windows installer', 'conclusion': 'failure', 'steps': []}
         def api(endpoint):
-            if endpoint.endswith('/jobs?per_page=100'):
+            if endpoint.endswith('/attempts/2/jobs?per_page=100'):
                 return json.dumps({'jobs': [job]}).encode()
             self.assertTrue(endpoint.endswith('/jobs/123/logs'))
             return b'CONFLICT (content): Merge conflict in lib/view.dart\n'
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory) / 'failed.log'
-            recovery.collect_failed_logs('example/repo', 123, destination, api=api)
+            finding = recovery.collect_failed_logs('example/repo', 123, destination, api=api, attempt=2)
+            self.assertEqual(finding, 'source')
             self.assertIn('CONFLICT', destination.read_text())
             self.assertFalse(recovery.is_transient_failure(destination.read_text()))
 
@@ -80,12 +82,36 @@ class DataMergeTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory) / 'failed.log'
-            recovery.collect_failed_logs('example/repo', 123, destination, api=api)
+            with patch.object(recovery.time, 'sleep') as pause:
+                finding = recovery.collect_failed_logs('example/repo', 123, destination, api=api)
+            self.assertEqual([call.args[0] for call in pause.call_args_list], [3, 6])
+            self.assertEqual(finding, 'unknown')
             log = destination.read_text()
             self.assertIn('Windows installer\nGitHub Actions job log unavailable.', log)
             self.assertIn('Android APK\nHTTP Error 503', log)
             self.assertTrue(destination.with_suffix('.jobs.json').is_file())
             self.assertFalse(recovery.is_transient_failure(log))
+
+    def test_all_failed_jobs_need_an_identified_recoverable_cause(self):
+        jobs = [
+            {'id': 123, 'name': 'Windows installer', 'conclusion': 'failure', 'steps': []},
+            {'id': 124, 'name': 'Android APK', 'conclusion': 'failure', 'steps': []},
+        ]
+        logs = {
+            '123': b'HTTP Error 503\n',
+            '124': b'Could not read workspace metadata from /home/runner/.gradle/caches/8.14/transforms/abc/metadata.bin\n',
+        }
+
+        def api(endpoint):
+            if endpoint.endswith('/jobs?per_page=100'):
+                return json.dumps({'jobs': jobs}).encode()
+            return logs[endpoint.split('/')[-2]]
+
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / 'failed.log'
+            self.assertEqual(recovery.collect_failed_logs('example/repo', 123, destination, api=api), 'cache')
+            logs['124'] = b'Unrecognized build error\n'
+            self.assertEqual(recovery.collect_failed_logs('example/repo', 123, destination, api=api), 'unknown')
 
 
 class GitMergeTests(unittest.TestCase):

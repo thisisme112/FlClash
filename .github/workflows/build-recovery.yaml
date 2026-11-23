@@ -11,6 +11,10 @@ permissions:
   contents: read
   actions: write
 
+concurrency:
+  group: vantage-recovery-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
 jobs:
   inspect:
     if: >-
@@ -24,42 +28,60 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
       - name: Read failed build steps
+        id: inspect
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           FAILED_RUN: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
-          python3 tool/build_recovery.py --collect --repo "$GH_REPO" --run "$FAILED_RUN" --output diagnostics/failed-steps.log
-      - name: Classify the failure
-        id: classify
-        run: python3 tool/build_recovery.py diagnostics/failed-steps.log
-      - name: Retry a temporary failure once
-        if: steps.classify.outputs.transient == 'true' && github.event.workflow_run.run_attempt < 2
+          python3 tool/build_recovery.py --collect --repo "$GH_REPO" --run "$FAILED_RUN" --attempt "$ATTEMPT" --output diagnostics/failed-steps.log
+      - name: Retry recoverable jobs once without restored caches
+        id: retry
+        if: contains(fromJSON('["transient", "cache"]'), steps.inspect.outputs.finding) && github.event.workflow_run.run_attempt == 1
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           FAILED_RUN: ${{ github.event.workflow_run.id }}
-        run: gh run rerun "$FAILED_RUN" --repo "$GH_REPO" --failed
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          latest=$(gh api "repos/$GH_REPO/actions/runs/$FAILED_RUN" --jq '[.run_attempt, .status] | join(":")')
+          if [ "$latest" = "$ATTEMPT:completed" ]; then
+            gh run rerun "$FAILED_RUN" --repo "$GH_REPO" --failed
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          fi
       - name: Record the recovery result
+        if: always()
         env:
-          TEMPORARY: ${{ steps.classify.outputs.transient }}
+          FINDING: ${{ steps.inspect.outputs.finding }}
           ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           FAILED_URL: ${{ github.event.workflow_run.html_url }}
+          RETRY: ${{ steps.retry.outputs.requested }}
+          RETRY_OUTCOME: ${{ steps.retry.outcome }}
         run: |
           python3 - <<'PY'
           import os
           from pathlib import Path
-          if os.environ['TEMPORARY'] == 'true' and int(os.environ['ATTEMPT']) < 2:
-              message = 'A temporary infrastructure failure was detected. Failed jobs were retried once.'
+          finding = os.environ['FINDING']
+          if os.environ['RETRY'] == 'true':
+              message = 'Retry requested for the failed jobs with restored dependency caches disabled.'
+          elif os.environ['RETRY_OUTCOME'] == 'failure':
+              message = 'GitHub could not enqueue the retry. See the retry step and original build logs.'
+          elif finding == 'source':
+              message = 'The build reported a source or test failure. Review the failed steps before changing the source.'
+          elif finding in ('transient', 'cache'):
+              message = 'The automatic retry has already been used or the run has advanced to another attempt.'
           else:
-              message = 'Source or repeated failures require a targeted fix. No source code was overwritten.'
+              message = 'The failed jobs could not all be classified. Review the available diagnostics and build logs.'
           with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as summary:
-              summary.write(message + '\n\nBuild: ' + os.environ['FAILED_URL'] + '\n')
+              summary.write(f"{message}\n\n[Original build]({os.environ['FAILED_URL']}) (attempt {os.environ['ATTEMPT']})\n")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vantage-build-failure-${{ github.event.workflow_run.id }}
+          name: vantage-build-failure-${{ github.event.workflow_run.id }}-attempt-${{ github.event.workflow_run.run_attempt }}
           path: diagnostics/
           retention-days: 90

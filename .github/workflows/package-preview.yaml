@@ -44,8 +44,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: ${{ github.run_attempt == 1 }}
           cache-dependency-path: core/go.sum
       - uses: Swatinem/rust-cache@v2
+        if: github.run_attempt == 1
         with:
           workspaces: |
             services/helper
@@ -54,7 +56,7 @@ jobs:
         with:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          cache: ${{ github.run_attempt == 1 }}
       - name: Configure Windows tools
         shell: pwsh
         run: |
@@ -120,16 +122,20 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: ${{ github.run_attempt == 1 }}
           cache-dependency-path: core/go.sum
       - uses: Swatinem/rust-cache@v2
+        if: github.run_attempt == 1
         with:
           workspaces: plugins/rust_api/rust
       - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: ${{ github.run_attempt > 1 }}
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          cache: ${{ github.run_attempt == 1 }}
       - uses: nttld/setup-ndk@v1
         id: ndk
         with:

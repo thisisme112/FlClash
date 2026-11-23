@@ -60,9 +60,10 @@ jobs:
         if: steps.prepare.outputs.run == 'true'
         with:
           go-version: ${{ steps.prepare.outputs.go_version }}
+          cache: ${{ github.run_attempt == 1 }}
           cache-dependency-path: core/go.sum
       - uses: Swatinem/rust-cache@v2
-        if: steps.prepare.outputs.run == 'true'
+        if: steps.prepare.outputs.run == 'true' && github.run_attempt == 1
         with:
           workspaces: |
             services/helper
@@ -72,7 +73,7 @@ jobs:
         with:
           channel: stable
           flutter-version: ${{ steps.prepare.outputs.flutter_version }}
-          cache: true
+          cache: ${{ github.run_attempt == 1 }}
       - name: Resolve and regenerate derived code
         if: steps.prepare.outputs.run == 'true'
         run: |
@@ -86,6 +87,8 @@ jobs:
           python3 -m unittest discover -s tool/tests -p 'test_*.py'
           if ! flutter analyze --no-fatal-infos; then
             dart fix --apply
+            dart run intl_utils:generate
+            dart run build_runner build
             dart format lib test
             flutter analyze --no-fatal-infos
           fi
