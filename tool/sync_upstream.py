@@ -127,6 +127,24 @@ def merge_upstream(revision):
         raise MergeConflict('Manual source resolution required: ' + ', '.join(unresolved))
 
 
+def select_upstream(revision):
+    base = git('merge-base', 'HEAD', revision).stdout.decode().strip()
+    removed = git('diff', '--name-only', '--diff-filter=D', base, revision, '--', 'setup.dart')
+    if not removed.stdout:
+        return revision
+
+    message = (
+        f'Upstream `{revision[:12]}` removed `setup.dart`, which Vantage packaging still uses. '
+        f'The existing Vantage source and toolchain from `{base[:12]}` stay in use.'
+    )
+    print(f'::warning::{message}')
+    summary = os.environ.get('GITHUB_STEP_SUMMARY')
+    if summary:
+        with open(summary, 'a', encoding='utf-8') as stream:
+            stream.write(f'{message}\n')
+    return base
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('operation', choices=['prepare', 'merge'])
@@ -137,6 +155,7 @@ def main():
     if args.operation == 'merge':
         merge_upstream(revision)
         return
+    revision = select_upstream(revision)
     text = git('show', f'{revision}:.github/workflows/build.yaml').stdout.decode()
     for name, value in version_pins(text).items():
         output(name, value)

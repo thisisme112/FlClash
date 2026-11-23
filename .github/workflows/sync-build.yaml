@@ -38,7 +38,7 @@ jobs:
       - name: Fetch the latest upstream source
         run: |
           git remote add upstream https://github.com/chen08209/FlClash.git
-          git fetch --no-tags upstream main
+          git fetch --no-tags --no-recurse-submodules upstream main
       - name: Read upstream toolchain pins
         id: prepare
         env:
@@ -49,10 +49,12 @@ jobs:
           python3 tool/sync_upstream.py prepare "${args[@]}"
       - name: Merge upstream while retaining Vantage commits
         if: steps.prepare.outputs.run == 'true'
+        env:
+          SYNC_REVISION: ${{ steps.prepare.outputs.upstream_sha }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          python3 tool/sync_upstream.py merge
+          python3 tool/sync_upstream.py merge --upstream "$SYNC_REVISION"
           git submodule update --init --recursive
       - uses: actions/setup-go@v5
         if: steps.prepare.outputs.run == 'true'

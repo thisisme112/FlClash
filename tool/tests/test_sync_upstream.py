@@ -65,6 +65,28 @@ class DataMergeTests(unittest.TestCase):
             self.assertIn('CONFLICT', destination.read_text())
             self.assertFalse(recovery.is_transient_failure(destination.read_text()))
 
+    def test_missing_job_log_keeps_other_diagnostics_and_blocks_retry(self):
+        jobs = [
+            {'id': 123, 'name': 'Windows installer', 'conclusion': 'failure'},
+            {'id': 124, 'name': 'Android APK', 'conclusion': 'failure', 'steps': []},
+        ]
+
+        def api(endpoint):
+            if endpoint.endswith('/jobs?per_page=100'):
+                return json.dumps({'jobs': jobs}).encode()
+            if endpoint.endswith('/jobs/123/logs'):
+                raise subprocess.CalledProcessError(1, ['gh', 'api', endpoint])
+            return b'HTTP Error 503\n'
+
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / 'failed.log'
+            recovery.collect_failed_logs('example/repo', 123, destination, api=api)
+            log = destination.read_text()
+            self.assertIn('Windows installer\nGitHub Actions job log unavailable.', log)
+            self.assertIn('Android APK\nHTTP Error 503', log)
+            self.assertTrue(destination.with_suffix('.jobs.json').is_file())
+            self.assertFalse(recovery.is_transient_failure(log))
+
 
 class GitMergeTests(unittest.TestCase):
     def setUp(self):
@@ -139,6 +161,22 @@ class GitMergeTests(unittest.TestCase):
     def test_an_already_merged_upstream_does_not_change_the_checkout(self):
         sync.merge_upstream(self.ours)
         self.assertEqual(self.git('status', '--porcelain'), '')
+
+    def test_upstream_packager_removal_holds_at_last_merged_revision(self):
+        self.write('setup.dart', 'packager\n')
+        self.commit('add the packager to both branches')
+        baseline = self.git('rev-parse', 'HEAD')
+        self.git('checkout', '-b', 'upstream-package-migration')
+        self.write('lib/new.dart', 'new source\n')
+        self.commit('compatible upstream change')
+        compatible = self.git('rev-parse', 'HEAD')
+        self.git('rm', 'setup.dart')
+        self.commit('replace the old package entry point')
+        incompatible = self.git('rev-parse', 'HEAD')
+        self.git('checkout', 'vantage')
+
+        self.assertEqual(sync.select_upstream(compatible), compatible)
+        self.assertEqual(sync.select_upstream(incompatible), baseline)
 
 
 if __name__ == '__main__':

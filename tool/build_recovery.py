@@ -7,6 +7,9 @@ import subprocess
 from pathlib import Path
 
 
+UNAVAILABLE_LOG = 'GitHub Actions job log unavailable.'
+
+
 def failed_step_log(job, log):
     windows = []
     for step in job.get('steps', []):
@@ -42,8 +45,14 @@ def collect_failed_logs(repo, run, destination, api=github_api):
     for job in jobs['jobs']:
         if job['conclusion'] not in ('failure', 'timed_out', 'startup_failure'):
             continue
-        log = api(f"repos/{repo}/actions/jobs/{int(job['id'])}/logs").decode(errors='replace')
-        sections.append(job['name'] + '\n' + failed_step_log(job, log))
+        job_id = int(job['id'])
+        try:
+            log = api(f'repos/{repo}/actions/jobs/{job_id}/logs').decode(errors='replace')
+        except subprocess.CalledProcessError as error:
+            print(f'::warning::Could not download log for job {job_id} (gh exit {error.returncode}).')
+            sections.append(job['name'] + '\n' + UNAVAILABLE_LOG)
+        else:
+            sections.append(job['name'] + '\n' + failed_step_log(job, log))
     destination.write_text('\n\n'.join(sections))
 
 
@@ -55,7 +64,7 @@ def is_transient_failure(log):
         r'Some tests failed|TestFailure|\[E\]',
         re.IGNORECASE,
     )
-    if source_errors.search(log):
+    if UNAVAILABLE_LOG in log or source_errors.search(log):
         return False
     network_errors = re.compile(
         r'curl: \((5|6|7|18|28|35|52|56)\)|'
